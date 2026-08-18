@@ -126,7 +126,15 @@ format, so an edited BDF source comes out as BrainVision. That's expected.
 mne-bids' copy-through path writes only the `.set`, producing an output that
 reads back as "`..._eeg.fdt` not found" while the validator reports zero
 errors. `convert_recording.py` preloads `.set` sources and writes a single
-self-contained `.set` to avoid this. Also: `read_raw_eeglab` falls back to
+self-contained `.set` to avoid this.
+
+Tell the two apart by size, not by assuming the fix applied. A
+self-contained `.set` is roughly as large as the source `.set` + `.fdt`
+together, because it now holds the samples. An output `.set` that is still
+header-sized -- 11 MB where the source `.fdt` was 373 MB -- is the broken
+case, and no amount of format conversion, compression or resampling explains
+it: `write_raw_bids` does not resample or compress. Open the output and
+check it reads. Also: `read_raw_eeglab` falls back to
 the same-stem `.fdt` when the header names a file that doesn't exist, so a
 stale internal pointer usually needs no repair.
 
