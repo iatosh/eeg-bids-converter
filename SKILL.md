@@ -149,6 +149,11 @@ the output does not contain the input. Fix it before continuing. Never work
 around it. Its silence is the only evidence you have that the signal survived,
 because the validator in Step 6 cannot tell you.
 
+One thing it cannot cover: when you built the Raw yourself, it compares the
+output against your parse, so both sides are wrong together and it stays
+silent. A loader you wrote must check itself before writing. The three
+assertions to use are in `references/custom_formats.md`.
+
 **Events:** exactly one of `--annotations-only` (mne reads embedded
 annotations) or `--events-csv` (a table you built). Neither, only if the
 recording truly has no events. Anything beyond that:
