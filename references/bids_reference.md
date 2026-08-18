@@ -116,14 +116,10 @@ standard channel names. It cannot infer `EEGReference` or `EEGGround`.
 (`convert_recording.py --line-freq`). The rest need
 `scripts/patch_sidecar.py` afterwards.
 
-**`Manufacturer` is a trap.** mne-bids fills it from a lookup on the file
-extension it *wrote*: `.vhdr` gives "Brain Products", `.bdf` gives "Biosemi",
-`.cdt` gives "Curry", `.fif` gives "Elekta". That names the vendor of the file
-format, not the amplifier. Any recording whose format was converted on write
-ends up asserting hardware it was never recorded on, with a value that is not
-`"n/a"` and so passes every emptiness check. `convert_recording.py` prints a
-warning whenever it converted the format. Overwrite the value with the real
-one from the dataset's documentation.
+**`Manufacturer` is written from the output extension**, not from the
+hardware: `.vhdr` gives "Brain Products", `.bdf` "Biosemi", `.cdt` "Curry",
+`.fif` "Elekta", `.edf` and `.set` "n/a". SKILL.md Step 5 covers what to do
+about it.
 
 ## `*_channels.tsv`
 
@@ -217,8 +213,5 @@ is the other common choice.
 self-contained and installed on demand by `uv run`. It exits nonzero only on
 real errors. Warnings are printed but do not fail the run.
 
-**Zero errors does not mean the conversion is correct.** The validator checks
-structure: filenames, required fields, column names. It cannot check that the
-signal in the output is the signal that was in the input, or that
-`EEGReference` says what the hardware actually did. Every silent corruption
-found while testing this skill passed it with zero errors.
+It checks structure, not signal. SKILL.md Step 6 covers what that leaves
+unchecked.

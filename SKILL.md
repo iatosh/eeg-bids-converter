@@ -143,16 +143,14 @@ uv run scripts/convert_recording.py \
 Loop it over every recording. A shell or Python driver reading `entities.json`
 is expected. What must not vary between recordings is the script call itself.
 
-After each write the script re-reads the file it just produced and compares
-sampling rate, duration, and waveform against the source. If that check fails,
-the output does not contain the input. Fix it before continuing. Never work
-around it. Its silence is the only evidence you have that the signal survived,
-because the validator in Step 6 cannot tell you.
+After each write the script re-reads the file and compares sampling rate,
+duration and waveform against the source. If that fails, the output does not
+contain the input: fix it, never work around it. Its silence is your only
+evidence the signal survived, because Step 6's validator cannot tell you.
 
-One thing it cannot cover: when you built the Raw yourself, it compares the
-output against your parse, so both sides are wrong together and it stays
-silent. A loader you wrote must check itself before writing. The three
-assertions to use are in `references/custom_formats.md`.
+It cannot cover a Raw you built yourself, because then it compares your parse
+against your parse. A loader you wrote must check itself first; the three
+assertions are in `references/custom_formats.md`.
 
 **Events:** exactly one of `--annotations-only` (mne reads embedded
 annotations) or `--events-csv` (a table you built). Neither, only if the
