@@ -90,8 +90,11 @@ Iterate until every recording maps to entities that read correctly, not merely
 until the regex matches. Files that genuinely differ from the rest are fine as
 documented exceptions.
 
-This maps one file to one recording. A single source file holding several
-recordings is handled in `references/custom_formats.md`.
+This maps one file to one recording. If a single source file holds several
+recordings, which is normal for `.mat`, the split happens in your loader
+rather than in the regex. Read `references/custom_formats.md` before writing
+that loader: it covers both the split and the check that the parse is
+correct.
 
 ## Step 3: Collect what only the documentation and the user can answer
 

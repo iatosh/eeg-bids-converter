@@ -31,13 +31,31 @@ Don't write a second conversion path. Build an `mne.io.RawArray`, save it as
 `.fif`, and feed that to the same script every other format goes through:
 
 ```python
-import mne
+import mne, numpy as np
 
 info = mne.create_info(ch_names, sfreq=sfreq, ch_types=ch_types)  # "eeg"/"eog"/"ecg"/"misc"
 raw = mne.io.RawArray(data, info, verbose=False)                  # data: (n_channels, n_samples), VOLTS
+
+# Do not skip this. A wrong sample layout produces a Raw with the right
+# channel names, the right sample count and the right sampling rate, whose
+# waveform correlates with the real signal at r = 0.000. Nothing downstream
+# catches it: convert_recording.py compares its output against this Raw, so a
+# bad parse survives that check, and the validator never looks at samples.
+X = raw.get_data(picks=range(min(8, len(ch_names))), stop=50000)
+lag1 = np.mean([np.corrcoef(x[:-1], x[1:])[0, 1] for x in X])
+sd = X.std(axis=1)
+assert lag1 > 0.9, f"lag-1 autocorrelation {lag1:.3f}: sample order is scrambled"
+assert sd.std() / sd.mean() > 0.1, "every channel has the same variance: channels are mixed"
+assert 1e-6 < np.abs(X).max() < 1e-2, f"peak {np.abs(X).max():.2e} V: unit scaling is wrong"
+
 # raw.set_annotations(...)   # if you have events, see references/events.md
 raw.save("/tmp/sub01_raw.fif", overwrite=True)
 ```
+
+The three assertions are explained in
+[Checking that you parsed it correctly](#checking-that-you-parsed-it-correctly),
+with the numbers measured on a real corruption. Read that section if one of
+them fires.
 ```bash
 uv run scripts/convert_recording.py --input /tmp/sub01_raw.fif --format fif \
     --bids-root /out/bids --subject 01 --task rest --line-freq 50 --annotations-only
