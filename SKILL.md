@@ -42,7 +42,13 @@ Lists every extension, which files are readable EEG recordings, and which
 look like external event/metadata files. Then read the dataset's own
 README/paper -- that is where Steps 2 and 3 get their answers.
 
-If files have no native mne reader (usually `.mat`), see
+Reading is delegated to `mne.io.read_raw`, so every format mne supports is
+handled -- including ones that look proprietary (`.cdt` Curry, `.mff` EGI,
+`.lay` Persyst). **Verify a format is really unreadable before writing your
+own parser for it**; a hand-written binary parser that guesses the sample
+layout wrong produces a file that passes the BIDS validator with zero errors
+and contains nothing but scrambled numbers. Only when mne genuinely cannot
+read the file (usually a custom `.mat` layout) go to
 `references/mne_bids_cookbook.md`.
 
 ## Step 2: Map filenames to BIDS entities

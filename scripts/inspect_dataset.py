@@ -60,7 +60,16 @@ def scan(raw_root):
             # A BrainVision .eeg/.vmrk or EEGLAB .fdt is part of another
             # recording, not one of its own -- only the file mne actually
             # opens (.vhdr, .set) counts as a recording.
-            if ext in COMPANION_EXTENSIONS:
+            # A BrainVision .eeg belongs to the .vhdr sitting next to it --
+            # but Nihon Kohden's own raw recordings are ALSO named .EEG (with
+            # .PNT/.LOG companions). Skipping every .eeg unconditionally
+            # reports a whole Nihon Kohden dataset as "0 readable recordings",
+            # silently, which is the worst way to lose data. Only treat it as
+            # a companion when the .vhdr it would belong to actually exists.
+            if ext == "eeg" and not os.path.exists(
+                    os.path.join(dirpath, fn.rsplit(".", 1)[0] + ".vhdr")):
+                pass
+            elif ext in COMPANION_EXTENSIONS:
                 continue
             relpath = os.path.relpath(os.path.join(dirpath, fn), raw_root)
             reader, bids_format = guess_format(ext)
