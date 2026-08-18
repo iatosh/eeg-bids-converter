@@ -1,0 +1,13 @@
+{
+    "Name": "<REQUIRED | string | the dataset's own name, from its paper or README>",
+    "BIDSVersion": "<REQUIRED | string | e.g. 1.10.0>",
+    "DatasetType": "<RECOMMENDED | string | raw, derivative or study. Default raw>",
+    "License": "<RECOMMENDED | string | e.g. CC0. Ask; do not assume>",
+    "Authors": ["<RECOMMENDED | array of string | as the source lists them>"],
+    "Acknowledgements": "<OPTIONAL | string>",
+    "HowToAcknowledge": "<OPTIONAL | string | the source's own wording>",
+    "Funding": ["<OPTIONAL | array of string | grant numbers named by the source>"],
+    "EthicsApprovals": ["<OPTIONAL | array of string>"],
+    "ReferencesAndLinks": ["<OPTIONAL | array of string | paper DOI, archive URL>"],
+    "DatasetDOI": "<OPTIONAL | string | e.g. doi:10.18112/openneuro.dsXXXXXX.v1.0.0>"
+}

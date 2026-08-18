@@ -1,0 +1,15 @@
+{
+    "trial_type": {
+        "LongName": "<OPTIONAL | string>",
+        "Description": "<RECOMMENDED | string | what this column holds>",
+        "Levels": {
+            "<label>": "<what this label means, from the source's own docs>"
+        }
+    },
+    "value": {
+        "Description": "<string | if the source does not document the codes, say so here and keep the raw numbers. Do not invent Levels>",
+        "Levels": {
+            "1": "<meaning, or delete Levels entirely if undocumented>"
+        }
+    }
+}

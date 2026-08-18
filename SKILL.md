@@ -47,7 +47,7 @@ are not background reading.
 | The dataset says anything about electrode positions, or you want `--montage` | `references/electrodes.md` |
 | The source ships already-filtered copies of the recordings | `references/derivatives.md` |
 | You need a spec fact: entity rules, sidecar fields, column names, format quirks | `references/bids_reference.md` |
-| You want to see a finished, spec-valid file before writing one | `references/examples_guide.md` |
+| You are writing a metadata file by hand, or want to see a finished one | `references/templates_and_examples.md` |
 
 ## Step 1: See what's there
 

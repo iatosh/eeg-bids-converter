@@ -1,10 +1,29 @@
-# Worked example (`references/examples/`)
+# Templates and worked example
 
-A complete, spec-valid, one-subject EEG dataset. Copy a file from here when you
-need to see the shape of a finished one. `validate_bids.py` reports 0 errors on
-this directory.
 
-The signal is 10 s of synthetic noise. Everything else is what a real
+Two directories, same layout, different jobs.
+
+**`templates/`** is what you copy. Every value is a placeholder stating the
+requirement level, the type, and what the field is for:
+
+```json
+"PowerLineFrequency": "<REQUIRED | number | 50 or 60, follows the recording country>",
+"RecordingDuration": "<RECOMMENDED | number | seconds. A number, not a quoted string>",
+```
+
+The directory names carry the layout too: `sub-<label>/eeg/`,
+`sub-<label>_task-<label>_eeg.json`. Copy the tree, rename the entities,
+replace the placeholders.
+
+**`examples/`** is what a filled-in result looks like. It is a real one-subject
+dataset that `validate_bids.py` reports 0 errors on. Read it when you want to
+see a finished file rather than a form.
+
+`validate_bids.py` also uses the key names in both directories to catch
+misspelled sidecar keys, which the official validator ignores. So a key
+renamed here changes what the checker accepts.
+
+The example's signal is 10 s of synthetic noise. Everything else is what a real
 conversion should look like.
 
 ```

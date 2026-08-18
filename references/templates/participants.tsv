@@ -1,0 +1,2 @@
+participant_id	age	sex	handedness
+sub-<label>	<number, years>	<F|M|O>	<L|R|A>

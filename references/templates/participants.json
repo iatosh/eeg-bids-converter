@@ -1,0 +1,17 @@
+{
+    "participant_id": {
+        "Description": "<REQUIRED | string | Unique participant identifier.>"
+    },
+    "age": {
+        "Description": "<string | delete this column if the source has no ages>",
+        "Units": "years"
+    },
+    "sex": {
+        "Description": "<string>",
+        "Levels": {"F": "female", "M": "male", "O": "other"}
+    },
+    "handedness": {
+        "Description": "<string>",
+        "Levels": {"L": "left", "R": "right", "A": "ambidextrous"}
+    }
+}

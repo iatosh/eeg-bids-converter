@@ -43,7 +43,11 @@ import sys
 # reports 0 errors on, so its key names and shapes are usable as the reference
 # nothing else provides.
 
-EXAMPLES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "references", "examples")
+_REFS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "references")
+# examples/ is the validated dataset; templates/ additionally carries the
+# OPTIONAL fields a real conversion may legitimately set. Reading both means a
+# case error in an optional field is caught too.
+KEY_SOURCES = [os.path.join(_REFS, "examples"), os.path.join(_REFS, "templates")]
 
 # Data dictionaries: every column maps to one object, and these are the only
 # keys allowed inside it (BIDS common-principles, PascalCase).
@@ -51,8 +55,8 @@ DICT_KEYS = {"LongName", "Description", "Format", "Levels", "Units",
              "Delimiter", "TermURL", "HED", "Minimum", "Maximum"}
 
 
-def _known_keys(root):
-    """Every JSON key used anywhere in the reference dataset."""
+def _known_keys(roots):
+    """Every JSON key used anywhere in the reference files."""
     keys = set()
 
     def walk(obj):
@@ -64,7 +68,8 @@ def _known_keys(root):
             for v in obj:
                 walk(v)
 
-    for dirpath, _, filenames in os.walk(root):
+    for root in roots:
+      for dirpath, _, filenames in os.walk(root):
         for fn in filenames:
             if fn.endswith(".json"):
                 try:
@@ -78,7 +83,7 @@ def _known_keys(root):
 def check_against_example(bids_root):
     """Report what the validator structurally cannot: misspelled keys and
     malformed data dictionaries. Returns a list of message strings."""
-    known = _known_keys(EXAMPLES)
+    known = _known_keys(KEY_SOURCES)
     if not known:
         return []
     folded = {k.lower(): k for k in known}

@@ -1,0 +1,15 @@
+# <dataset name>
+
+## What was recorded
+
+<Channel count, sampling rate, task, participant count. One paragraph.>
+
+## Known issues
+
+<Bad channels, truncated runs, subjects excluded and why. "None known" is a
+valid answer. Silence is not.>
+
+## Provenance
+
+<Source archive URL or DOI. What was inferred rather than read, and which
+fields are "n/a" because neither the docs nor the user could answer.>

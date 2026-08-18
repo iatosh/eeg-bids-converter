@@ -1,0 +1,5 @@
+name	type	units	status	status_description
+<REQUIRED, unique>	<REQUIRED, UPPERCASE from the BIDS vocabulary>	<REQUIRED, SI, e.g. V>	<OPTIONAL, good|bad>	<OPTIONAL, why it is bad>
+Cz	EEG	V	good	n/a
+VEOG	EOG	V	good	n/a
+T7	EEG	V	bad	<reason>
