@@ -206,6 +206,8 @@ uv run scripts/write_bids_metadata.py --list-columns <demographics_file>   # if 
 uv run scripts/write_bids_metadata.py \
     --bids-root <bids_root> --name "<name>" --authors "A,B" --license CC0 \
     [--doi <DatasetDOI> --references-and-links "<url>,<url>"] \
+    [--how-to-acknowledge "<the source's own wording>" --funding "<grant>,<grant>"] \
+    [--ethics-approvals "<approval reference>"] \
     [--demographics-file <path> --column-map '{"SubjID":"participant_id","Age":"age"}' \
      --column-descriptions '{"group":{"Description":"...","Levels":{...}}}'] \
     [--readme-text "$(cat readme.md)"]

@@ -178,31 +178,22 @@ def main():
         print(proc.stderr, file=sys.stderr)
         sys.exit(2)
 
-    issues = result.get("issues", {}).get("issues", []) if "issues" in result else result.get("issues", [])
-    if isinstance(issues, dict):
-        issues = issues.get("issues", [])
-
+    issues = result["issues"]["issues"]
     errors = [i for i in issues if i.get("severity") == "error"]
     warnings = [i for i in issues if i.get("severity") == "warning"]
 
     print(f"BIDS validator: {len(errors)} error(s), {len(warnings)} warning(s)\n")
 
-    for i in errors:
-        code = i.get("code", i.get("key", "?"))
-        loc = i.get("location", i.get("subCode", ""))
-        reason = i.get("reason", i.get("issueMessage", ""))
-        print(f"ERROR  [{code}] {loc}")
-        if reason:
-            print(f"       {reason}")
-
-    if not args.ignore_warnings:
-        for i in warnings:
+    shown = [("ERROR", errors)] + ([] if args.ignore_warnings else [("WARN ", warnings)])
+    for label, items in shown:
+        for i in items:
             code = i.get("code", i.get("key", "?"))
             loc = i.get("location", i.get("subCode", ""))
             reason = i.get("reason", i.get("issueMessage", ""))
-            print(f"WARN   [{code}] {loc}")
+            print(f"{label}  [{code}] {loc}")
             if reason:
                 print(f"       {reason}")
+
 
     extra = check_against_example(args.bids_root)
     for msg in extra:

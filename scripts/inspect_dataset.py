@@ -40,7 +40,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _common import COMPANION_EXTENSIONS, EVENT_SIDECAR_EXTENSIONS, guess_format, sanitize_label
+from _common import COMPANION_EXTENSIONS, EVENT_SIDECAR_EXTENSIONS, READABLE_EXTENSIONS, bids_format, sanitize_label
 
 ENTITY_ORDER = ["subject", "session", "task", "acq", "run"]
 
@@ -72,10 +72,9 @@ def scan(raw_root):
             elif ext in COMPANION_EXTENSIONS:
                 continue
             relpath = os.path.relpath(os.path.join(dirpath, fn), raw_root)
-            reader, bids_format = guess_format(ext)
-            if reader:
+            if ext in READABLE_EXTENSIONS:
                 recordings.append({"relpath": relpath, "path": os.path.join(dirpath, fn),
-                                   "extension": ext, "reader": reader, "bids_format": bids_format})
+                                   "extension": ext, "bids_format": bids_format(ext)})
             else:
                 other.append({"relpath": relpath, "extension": ext,
                               "maybe_events": ext in EVENT_SIDECAR_EXTENSIONS})
@@ -114,7 +113,7 @@ def main():
 
     if not args.pattern:
         for r in recordings:
-            print(f"  {r['relpath']}  ({r['reader']})")
+            print(f"  {r['relpath']}  ({r['bids_format'] or 'converted on write'})")
         unreadable = sorted({f["extension"] for f in other} - EVENT_SIDECAR_EXTENSIONS)
         maybe_events = [f["relpath"] for f in other if f["maybe_events"]]
         if maybe_events:
@@ -124,8 +123,9 @@ def main():
             if len(maybe_events) > 20:
                 print(f"  ... and {len(maybe_events) - 20} more")
         if unreadable:
-            print(f"\nno native mne reader for: {unreadable}")
-            print("  -> these need a custom loader; see references/custom_formats.md")
+            print(f"\nnot recognised as recordings: {unreadable}")
+            print("  -> if one of these is EEG, try mne.io.read_raw on it before")
+            print("     assuming it needs a custom loader; see references/custom_formats.md")
         if not recordings:
             print("\nNothing readable found. Check the path, or the data needs a custom loader.")
         return

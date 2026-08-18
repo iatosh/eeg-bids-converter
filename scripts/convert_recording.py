@@ -65,7 +65,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _common import guess_format
+from _common import bids_format
 
 
 def _diagnose_brainvision(input_path):
@@ -105,10 +105,8 @@ def build_raw(input_path: str, format_override: str | None, preload: bool = Fals
     import mne
 
     ext = (format_override or input_path.rsplit(".", 1)[-1]).lower()
-    reader_name, _ = guess_format(ext)
-    reader = getattr(mne.io, reader_name) if reader_name else mne.io.read_raw
     try:
-        return reader(input_path, preload=preload, verbose=False)
+        return mne.io.read_raw(input_path, preload=preload, verbose=False)
     except FileNotFoundError as exc:
         raise SystemExit(f"error reading {input_path}: {exc}" +
                          (_diagnose_brainvision(input_path) if ext == "vhdr" else ""))
@@ -124,16 +122,9 @@ def apply_events_csv(raw, events_csv_path: str):
 
     df = pd.read_csv(events_csv_path)
     if "onset" not in df.columns:
-        # Be forgiving of the common "onset_sec" naming seen in lab exports.
-        rename = {}
-        for col in df.columns:
-            if col.lower() in ("onset_sec", "onset_s", "onset_time"):
-                rename[col] = "onset"
-            elif col.lower() in ("duration_sec", "duration_s"):
-                rename[col] = "duration"
-        df = df.rename(columns=rename)
-    if "onset" not in df.columns:
-        raise SystemExit("error: --events-csv must have an 'onset' column (seconds)")
+        raise SystemExit(
+            f"error: --events-csv needs an 'onset' column in seconds; got {list(df.columns)}. "
+            f"Note it is read as comma-separated, not TSV.")
     if "duration" not in df.columns:
         # BIDS requires the column to exist; 0 is the correct value for
         # instantaneous/point events (the common case for trigger-coded
@@ -158,20 +149,14 @@ def main():
     parser.add_argument("--rename-channels", default=None, help='JSON dict of {old_name: new_name} to clean up messy source channel labels before writing.')
     parser.add_argument("--drop-channels", default=None, help="Comma-separated channel names to drop before writing (e.g. unused/empty channels).")
     parser.add_argument("--montage", default=None, help="Standard montage name (e.g. standard_1020, GSN-HydroCel-128) to attach, producing electrodes.tsv + coordsystem.json. Use ONLY when the recording really used that layout and channel names match it. A generic cap layout is not a substitute for digitized positions: if you only know the scheme, leave this off and set EEGPlacementScheme via patch_sidecar.py instead. --list-montages prints the available names.")
-    parser.add_argument("--list-montages", action="store_true", help="Print the standard montage names mne ships and exit")
     parser.add_argument("--annotations-only", action="store_true", help="Write events.tsv from raw.annotations (mutually exclusive with --events-csv)")
     parser.add_argument("--events-csv", default=None, help="Path to a CSV with onset,duration,trial_type[,value] columns (seconds); written directly, bypassing mne-bids' annotation-derived events (mutually exclusive with --annotations-only)")
     parser.add_argument("--events-descriptions", default=None, help='Only with --events-csv: JSON dict documenting non-obvious event columns for the accompanying events.json, e.g. \'{"trial_type": {"Description": "Event category", "Levels": {"standard": "Frequent tone", "target": "Rare tone"}}}\'. Any --events-csv column not covered gets a generic placeholder description so the validator does not flag it as undocumented: pass real Levels here whenever you know what the codes mean (see references/custom_formats.md).')
     parser.add_argument("--output-format", default="auto", help="BIDS output format: auto (default; keeps source format when BIDS-native and no preload is needed, else falls back to BrainVision), or explicitly EDF/BrainVision/EEGLAB (BDF is not a valid explicit target for mne-bids: only reachable via 'auto' with no channel edits).")
     parser.add_argument("--anonymize-daysback", type=int, default=None, help="If set, shifts recording dates back this many days (mne-bids anonymize=). Use for any dataset with real subject-identifying dates.")
     parser.add_argument("--overwrite", action="store_true")
-    parser.add_argument("--allow-preload", action="store_true", help="Only needed if the source data must be preloaded (e.g. to modify channels) AND --output-format is not 'auto'.")
     args = parser.parse_args()
 
-    if args.list_montages:
-        import mne
-        print("\n".join(mne.channels.get_builtin_montages()))
-        return
 
     if args.annotations_only and args.events_csv:
         print("error: pass at most one of --annotations-only / --events-csv, never both", file=sys.stderr)
@@ -192,7 +177,7 @@ def main():
     from mne_bids import BIDSPath, write_raw_bids
 
     ext = (args.format_override or args.input.rsplit(".", 1)[-1]).lower()
-    _, src_bids_format = guess_format(ext)
+    src_bids_format = bids_format(ext)
 
     # format="auto" only works when mne-bids can copy the source through
     # untouched, which needs the source to already be a BIDS format AND the
@@ -213,9 +198,11 @@ def main():
     # Preloading and writing EEGLAB explicitly produces a single self-contained
     # .set instead. Costs one full read into memory; correctness is worth it.
     bids_native = src_bids_format in ("EDF", "BrainVision", "BDF")
-    needs_preload = bool(args.rename_channels or args.drop_channels or args.channel_types)
-    if args.output_format == "auto" and not bids_native:
-        needs_preload = True
+    # mne-bids can only copy a source through untouched when the source is
+    # already a BIDS format, the data is not preloaded, and no explicit target
+    # was named. Every other route needs the data in memory.
+    needs_preload = bool(args.rename_channels or args.drop_channels or args.channel_types
+                         or args.output_format != "auto" or not bids_native)
 
     raw = build_raw(args.input, args.format_override, preload=needs_preload)
 
@@ -271,7 +258,7 @@ def main():
     write_kwargs = dict(
         overwrite=args.overwrite,
         format=output_format,
-        allow_preload=args.allow_preload or needs_preload,
+        allow_preload=needs_preload,
         anonymize=anonymize,
         verbose=False,
     )

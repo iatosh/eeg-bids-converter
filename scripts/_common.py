@@ -8,17 +8,27 @@ own directory on sys.path[0], so `import _common` works regardless of cwd).
 import re
 
 
-# Raw EEG formats mne can read natively, keyed by file extension (lowercase,
-# without the leading dot). Extensions map to the mne.io.read_raw_* function
-# name the caller should use, and the canonical BIDS source_format label.
-EXTENSION_FORMAT_MAP = {
-    "edf": ("read_raw_edf", "EDF"),
-    "bdf": ("read_raw_bdf", "BDF"),
-    "vhdr": ("read_raw_brainvision", "BrainVision"),
-    "set": ("read_raw_eeglab", "EEGLAB"),
-    "cnt": ("read_raw_cnt", "CNT"),
-    "gdf": ("read_raw_gdf", "GDF"),
-    "fif": ("read_raw_fif", "FIF"),
+# The four formats BIDS accepts for raw EEG, keyed by lowercase extension.
+# Reading is not in this table: mne.io.read_raw dispatches by extension and
+# covers far more than these. This only answers "may the source file be copied
+# through as-is, or must it be converted on write".
+BIDS_FORMATS = {
+    "edf": "EDF",
+    "bdf": "BDF",
+    "vhdr": "BrainVision",
+    "set": "EEGLAB",
+}
+
+# Extensions mne.io.read_raw dispatches on. Scanning asks a different question
+# from writing: "is this plausibly a recording", not "may it be copied through".
+# Kept as a plain set so inspect_dataset.py stays dependency-free; it only ever
+# decides what to print, and convert_recording.py hands the file to mne either
+# way. A format missing here is reported as unreadable but still converts.
+READABLE_EXTENSIONS = {
+    "edf", "bdf", "vhdr", "set", "cnt", "gdf", "fif",      # the common ones
+    "cdt", "mff", "lay", "nxe", "data", "nedf", "eeg",     # curry, egi, persyst,
+                                                            # eximia, nicolet, nedf,
+                                                            # nihon kohden
 }
 
 # Extensions that are companions to a primary file and shouldn't be scanned
@@ -31,9 +41,10 @@ COMPANION_EXTENSIONS = {"eeg", "vmrk", "fdt"}
 EVENT_SIDECAR_EXTENSIONS = {"csv", "tsv", "txt", "lab", "tse_agg", "tse_ag", "xlsx", "mat"}
 
 
-def guess_format(extension: str):
-    """Return (reader_function_name, bids_format_label) or (None, None)."""
-    return EXTENSION_FORMAT_MAP.get(extension.lower(), (None, None))
+def bids_format(extension: str):
+    """Return the BIDS format label for this extension, or None if BIDS does
+    not accept it and the recording must be converted on write."""
+    return BIDS_FORMATS.get(extension.lower())
 
 
 def sanitize_label(value: str) -> str:
@@ -45,9 +56,3 @@ def sanitize_label(value: str) -> str:
     """
     return re.sub(r"[^A-Za-z0-9]", "", str(value))
 
-
-def zero_pad_run(run) -> str:
-    """BIDSPath zero-pads run/split to >=2 digits; mirror that for filenames
-    or manifests built before a BIDSPath exists."""
-    s = str(run)
-    return s.zfill(2) if s.isdigit() else sanitize_label(s)
