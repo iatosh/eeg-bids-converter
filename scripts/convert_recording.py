@@ -12,9 +12,9 @@
 # ///
 """Convert ONE raw recording into a correctly-written BIDS recording.
 
-This is the fragile part of the pipeline -- reader dispatch, channel
+This is the fragile part of the pipeline: reader dispatch, channel
 overrides, the line_freq-before-write idiom, a single events write path,
-BIDSPath construction -- done the same way every time.
+BIDSPath construction, all done the same way every time.
 
 WHAT THIS SCRIPT DOES NOT DECIDE FOR YOU:
   - which files map to which subject/session/task/run (use inspect_dataset.py)
@@ -25,17 +25,17 @@ WHAT THIS SCRIPT DOES NOT DECIDE FOR YOU:
     Processed data belongs in derivatives/, written with --desc.
 
 SOURCE FORMATS: reading is delegated to mne.io.read_raw, so every format mne
-supports works -- edf, bdf, vhdr, set, cnt, gdf, fif, cdt (Curry), mff (EGI),
+supports works. That includes edf, bdf, vhdr, set, cnt, gdf, fif, cdt (Curry), mff (EGI),
 lay (Persyst) and the rest. Do NOT assume a format is unsupported because it
 looks unusual; check first. Only for a format mne genuinely cannot read
 (custom .mat layouts, proprietary binary) build an mne.io.RawArray yourself,
-raw.save() it as .fif, and pass that with --format fif -- see
+raw.save() it as .fif, and pass that with --format fif. See
 references/custom_formats.md. One write path for every source.
 
 After writing, the output is read back and compared against the source
 (sampling rate, duration, waveform). The BIDS validator checks structure, not
-signal, and every silent corruption found in testing -- a dropped .fdt, a
-hardcoded sampling rate, a hand-parsed file read transposed -- passed it with
+signal. Every silent corruption found in testing (a dropped .fdt, a
+hardcoded sampling rate, a hand-parsed file read transposed) passed it with
 zero errors.
 
 EVENTS: pass at most ONE of --annotations-only (source has embedded
@@ -90,7 +90,7 @@ def _diagnose_brainvision(input_path):
         return ""
     return ("\nThis .vhdr's internal file pointers are stale:\n" + "\n".join(problems) +
             "\nCopy the triplet to a scratch directory and correct the DataFile:/MarkerFile: "
-            "lines there -- do not edit files in the source dataset.")
+            "lines there. Do not edit files in the source dataset.")
 
 
 def build_raw(input_path: str, format_override: str | None, preload: bool = False):
@@ -116,7 +116,7 @@ def build_raw(input_path: str, format_override: str | None, preload: bool = Fals
         raise SystemExit(
             f"error: mne could not read {input_path}: {exc}\n"
             f"If this format genuinely has no mne reader, build a Raw yourself, raw.save() it "
-            f"as .fif, and pass that with --format fif -- but check `mne.io.read_raw` first.")
+            f"as .fif, and pass that with --format fif. But check `mne.io.read_raw` first.")
 
 
 def apply_events_csv(raw, events_csv_path: str):
@@ -152,17 +152,17 @@ def main():
     parser.add_argument("--task", help="Sanitized task label")
     parser.add_argument("--run", default=None, help="Run index, e.g. 1 or 01")
     parser.add_argument("--acq", default=None)
-    parser.add_argument("--desc", default=None, help="BIDS 'desc' entity (e.g. 'preproc'). Only for writing into a derivatives/<pipeline>/ tree to distinguish a processed version from the raw recording it was derived from -- never set this when writing to the raw dataset itself. See SKILL.md's derivatives step.")
+    parser.add_argument("--desc", default=None, help="BIDS 'desc' entity (e.g. 'preproc'). Only for writing into a derivatives/<pipeline>/ tree to distinguish a processed version from the raw recording it was derived from: never set this when writing to the raw dataset itself. See SKILL.md's derivatives step.")
     parser.add_argument("--line-freq", default=None, help="Power line frequency in Hz (50 or 60), or 'unknown'. One of several fields mne-bids cannot infer; anything left unset is reported after the write.")
     parser.add_argument("--channel-types", default=None, help='JSON dict of {channel_name: bids_type}, e.g. \'{"HEOG":"eog"}\'. Lowercase MNE type names (eog/ecg/emg/misc/stim).')
     parser.add_argument("--rename-channels", default=None, help='JSON dict of {old_name: new_name} to clean up messy source channel labels before writing.')
     parser.add_argument("--drop-channels", default=None, help="Comma-separated channel names to drop before writing (e.g. unused/empty channels).")
-    parser.add_argument("--montage", default=None, help="Standard montage name (e.g. standard_1020, GSN-HydroCel-128) to attach, producing electrodes.tsv + coordsystem.json. Use ONLY when the recording really used that layout and channel names match it. A generic cap layout is not a substitute for digitized positions -- if you only know the scheme, leave this off and set EEGPlacementScheme via patch_sidecar.py instead. --list-montages prints the available names.")
+    parser.add_argument("--montage", default=None, help="Standard montage name (e.g. standard_1020, GSN-HydroCel-128) to attach, producing electrodes.tsv + coordsystem.json. Use ONLY when the recording really used that layout and channel names match it. A generic cap layout is not a substitute for digitized positions: if you only know the scheme, leave this off and set EEGPlacementScheme via patch_sidecar.py instead. --list-montages prints the available names.")
     parser.add_argument("--list-montages", action="store_true", help="Print the standard montage names mne ships and exit")
     parser.add_argument("--annotations-only", action="store_true", help="Write events.tsv from raw.annotations (mutually exclusive with --events-csv)")
     parser.add_argument("--events-csv", default=None, help="Path to a CSV with onset,duration,trial_type[,value] columns (seconds); written directly, bypassing mne-bids' annotation-derived events (mutually exclusive with --annotations-only)")
-    parser.add_argument("--events-descriptions", default=None, help='Only with --events-csv: JSON dict documenting non-obvious event columns for the accompanying events.json, e.g. \'{"trial_type": {"Description": "Event category", "Levels": {"standard": "Frequent tone", "target": "Rare tone"}}}\'. Any --events-csv column not covered gets a generic placeholder description so the validator does not flag it as undocumented -- pass real Levels here whenever you know what the codes mean (see references/custom_formats.md).')
-    parser.add_argument("--output-format", default="auto", help="BIDS output format: auto (default; keeps source format when BIDS-native and no preload is needed, else falls back to BrainVision), or explicitly EDF/BrainVision/EEGLAB (BDF is not a valid explicit target for mne-bids -- only reachable via 'auto' with no channel edits).")
+    parser.add_argument("--events-descriptions", default=None, help='Only with --events-csv: JSON dict documenting non-obvious event columns for the accompanying events.json, e.g. \'{"trial_type": {"Description": "Event category", "Levels": {"standard": "Frequent tone", "target": "Rare tone"}}}\'. Any --events-csv column not covered gets a generic placeholder description so the validator does not flag it as undocumented: pass real Levels here whenever you know what the codes mean (see references/custom_formats.md).')
+    parser.add_argument("--output-format", default="auto", help="BIDS output format: auto (default; keeps source format when BIDS-native and no preload is needed, else falls back to BrainVision), or explicitly EDF/BrainVision/EEGLAB (BDF is not a valid explicit target for mne-bids: only reachable via 'auto' with no channel edits).")
     parser.add_argument("--anonymize-daysback", type=int, default=None, help="If set, shifts recording dates back this many days (mne-bids anonymize=). Use for any dataset with real subject-identifying dates.")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--allow-preload", action="store_true", help="Only needed if the source data must be preloaded (e.g. to modify channels) AND --output-format is not 'auto'.")
@@ -203,12 +203,12 @@ def main():
     # "The input data is in a file format not supported by BIDS".
     #
     # mne-bids' explicit `format=` accepts only BrainVision/EDF/EEGLAB/FIF, so
-    # BDF -- a valid BIDS format, but not a valid explicit target -- stays on
+    # BDF is a valid BIDS format but not a valid explicit target, so it stays on
     # the copy-through path unless something else forces a preload.
     #
     # EEGLAB is deliberately NOT on this list even though BIDS accepts it. An
     # EEGLAB recording is a .set header plus a .fdt holding the samples, and
-    # mne-bids' copy-through path writes only the .set -- the output reads back
+    # mne-bids' copy-through path writes only the .set, so the output reads back
     # as "File ..._eeg.fdt not found" while the validator reports zero errors.
     # Preloading and writing EEGLAB explicitly produces a single self-contained
     # .set instead. Costs one full read into memory; correctness is worth it.
@@ -306,7 +306,7 @@ def main():
         cols = ["onset", "duration"] + [c for c in events_df.columns if c not in ("onset", "duration")]
         events_df[cols].to_csv(events_path.fpath, sep="\t", index=False, na_rep="n/a")
 
-        # Always write the accompanying events.json too -- an --events-csv
+        # Always write the accompanying events.json too: an --events-csv
         # write path has no mne-bids equivalent of the auto-generated one
         # the --annotations-only path gets for free, and an undocumented
         # extra column (e.g. a raw numeric "code") is exactly the kind of
@@ -333,7 +333,7 @@ def verify_written(source_raw, bids_path):
     """Read the file back and check it still holds the source signal.
 
     write_raw_bids() reports success in cases where the output is wrong or
-    empty -- an EEGLAB .set written without its .fdt companion (all the data
+    empty: an EEGLAB .set written without its .fdt companion (all the data
     missing), a converter that changed the sampling rate, a source built by a
     hand-written parser that scrambled the samples. The BIDS validator catches
     none of these: it checks structure, not signal. This is the only step that
@@ -348,7 +348,7 @@ def verify_written(source_raw, bids_path):
         raise SystemExit(
             f"error: wrote {bids_path.fpath} but cannot read it back: {exc}\n"
             f"The output is unusable. For an EEGLAB .set this usually means the .fdt "
-            f"companion was not written -- re-run with --output-format BrainVision.")
+            f"companion was not written: re-run with --output-format BrainVision.")
 
     problems = []
     if out.info["sfreq"] != source_raw.info["sfreq"]:
@@ -376,7 +376,7 @@ def verify_written(source_raw, bids_path):
 
 
 # Fields mne-bids writes as "n/a" because nothing in the raw file can tell
-# it the answer. They are not errors -- but each one has to be a decision
+# it the answer. They are not errors: but each one has to be a decision
 # somebody made, not a default nobody noticed.
 NO_INFER_FIELDS = ("PowerLineFrequency", "EEGReference", "EEGGround",
                    "Manufacturer", "ManufacturersModelName", "EEGPlacementScheme")
@@ -394,7 +394,7 @@ def report_undetermined(bids_path, converted=False):
     # mne-bids fills Manufacturer from a FILE FORMAT lookup (config.MANUFACTURERS:
     # .vhdr -> "Brain Products", .cdt -> "Curry", .fif -> "Elekta"), which names the
     # format's vendor, not the amplifier that recorded the data. It is not "n/a", so
-    # the check above lets it through -- a Neuroscan recording written as BrainVision
+    # the check above lets it through: a Neuroscan recording written as BrainVision
     # comes out claiming Brain Products hardware, and no validator objects.
     #
     # Only worth saying when the format actually changed: a BrainVision source
@@ -402,7 +402,7 @@ def report_undetermined(bids_path, converted=False):
     # train the reader to skip this line.
     from mne_bids.config import MANUFACTURERS
     if converted and str(meta.get("Manufacturer", "")) in set(MANUFACTURERS.values()) - {"n/a"}:
-        print(f"  Manufacturer is {meta['Manufacturer']!r} -- that is the vendor of the format this "
+        print(f"  Manufacturer is {meta['Manufacturer']!r}: that is the vendor of the format this "
               f"was CONVERTED to, not the recording hardware. Set the real one via patch_sidecar.py.")
 
     if not unset:

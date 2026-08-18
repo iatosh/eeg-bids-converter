@@ -1,6 +1,6 @@
 """Shared helpers for the eeg-bids-converter skill scripts.
 
-Not a standalone entry point -- imported by the other scripts/*.py files.
+Not a standalone entry point: imported by the other scripts/*.py files.
 Pure stdlib only, so it never needs its own PEP 723 dependency block; it
 just has to sit next to the scripts that import it (uv puts the script's
 own directory on sys.path[0], so `import _common` works regardless of cwd).
@@ -26,7 +26,7 @@ EXTENSION_FORMAT_MAP = {
 COMPANION_EXTENSIONS = {"eeg", "vmrk", "fdt"}
 
 # Extensions that commonly hold event/marker/annotation sidecar data in the
-# wild (never authoritative BIDS files themselves -- just a signal during
+# wild (never authoritative BIDS files themselves: just a signal during
 # dataset scanning that a raw file likely has an external events source).
 EVENT_SIDECAR_EXTENSIONS = {"csv", "tsv", "txt", "lab", "tse_agg", "tse_ag", "xlsx", "mat"}
 
@@ -40,7 +40,7 @@ def sanitize_label(value: str) -> str:
     """Strip everything but alphanumerics, per BIDS label rules.
 
     BIDS entity labels (sub-<label>, task-<label>, etc.) MUST be alphanumeric
-    only -- no underscores, hyphens, or spaces. This is also how mne-bids
+    only: no underscores, hyphens, or spaces. This is also how mne-bids
     derives a filename-safe task label from a human-readable TaskName.
     """
     return re.sub(r"[^A-Za-z0-9]", "", str(value))

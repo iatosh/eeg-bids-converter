@@ -3,7 +3,7 @@
 # dependencies = []
 # ///
 """Survey a raw dataset: what files are there, which are readable EEG
-recordings, and -- with --pattern -- what BIDS entities your filename regex
+recordings, and: with --pattern: what BIDS entities your filename regex
 would extract from each one.
 
 Run without --pattern first to see what you're dealing with, then re-run
@@ -18,7 +18,7 @@ Usage:
     uv run scripts/inspect_dataset.py <raw_root> --pattern '...' --out entities.json
 
 --pattern takes named groups: subject (required), session, task, run, acq
-(all optional -- omit any the dataset doesn't have; don't invent a ses-01
+(all optional: omit any the dataset doesn't have; don't invent a ses-01
 just for symmetry). Captured values are sanitized to alphanumeric-only per
 BIDS label rules, so check the printed result still reads correctly --
 "s01_v2" silently becomes "s01v2".
@@ -58,7 +58,7 @@ def scan(raw_root):
             ext = fn.rsplit(".", 1)[-1].lower() if "." in fn else ""
             counts[ext] = counts.get(ext, 0) + 1
             # A BrainVision .eeg/.vmrk or EEGLAB .fdt is part of another
-            # recording, not one of its own -- only the file mne actually
+            # recording, not one of its own: only the file mne actually
             # opens (.vhdr, .set) counts as a recording.
             # A BrainVision .eeg belongs to the .vhdr sitting next to it --
             # but Nihon Kohden's own raw recordings are ALSO named .EEG (with
@@ -134,7 +134,7 @@ def main():
         # Legitimate for a single-participant dataset, which often names the
         # participant nowhere. Anything else means a forgotten group.
         print("note: pattern captures no subject; pass --subject explicitly per recording.\n"
-              "      Correct for a single-participant dataset -- otherwise add (?P<subject>...).\n")
+              "      Correct for a single-participant dataset: otherwise add (?P<subject>...).\n")
 
     results, failed = {}, []
     for r in recordings:

@@ -1,0 +1,22 @@
+{
+    "Name": "Visual Go/No-Go EEG",
+    "BIDSVersion": "1.10.0",
+    "DatasetType": "raw",
+    "License": "CC0",
+    "Authors": [
+        "Doe, Jane",
+        "Roe, Richard"
+    ],
+    "Acknowledgements": "We thank the participants for their time.",
+    "HowToAcknowledge": "Please cite https://doi.org/10.5281/zenodo.0000000",
+    "Funding": [
+        "Example Funding Agency, grant 00000000"
+    ],
+    "EthicsApprovals": [
+        "Ethics Committee of Example University (approval 0000-00)"
+    ],
+    "ReferencesAndLinks": [
+        "https://doi.org/10.5281/zenodo.0000000"
+    ],
+    "DatasetDOI": "doi:10.5281/zenodo.0000000"
+}

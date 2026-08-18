@@ -39,7 +39,7 @@ says the standard positions were applied.
 ## Real digitized positions
 
 Positions the source actually measured are worth keeping, and they are
-routinely dropped by accident -- a dataset whose README advertises "the
+routinely dropped by accident. A dataset whose README advertises "the
 locations of 3D EEG electrodes" is easy to convert without ever extracting
 them.
 
@@ -52,7 +52,7 @@ deletes the data file out from under a lazily-loaded Raw.
 # coords: {channel_name: (x, y, z)} in METRES, head coordinate frame
 montage = mne.channels.make_dig_montage(
     ch_pos=coords,
-    nasion=nas, lpa=lpa, rpa=rpa,     # see below -- these matter
+    nasion=nas, lpa=lpa, rpa=rpa,     # see below, these matter
     coord_frame="head")
 raw.set_montage(montage, on_missing="warn")
 raw.save("/tmp/sub01_raw.fif", overwrite=True)
@@ -83,7 +83,7 @@ landmarks to satisfy the writer would produce exactly the fabricated
 instead and say so in the Step 7 report.
 
 If the source really does provide fiducials somewhere else in its files,
-supplying them is better than losing the coordinates -- look before
+supplying them is better than losing the coordinates. Look before
 accepting the drop.
 
 ## File requirements

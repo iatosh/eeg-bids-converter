@@ -14,12 +14,12 @@ participants.tsv on every call, so running this first means your columns get
 reset to bare defaults.
 
 participants.json always describes exactly the columns participants.tsv
-actually has -- no more. If the source dataset carries no demographics, the
+actually has: no more. If the source dataset carries no demographics, the
 honest output is a single participant_id entry saying so, not a set of
 plausible-looking age/sex/handedness entries for columns that don't exist.
 
 Usage:
-    # see the real column names before mapping them -- don't guess
+    # see the real column names before mapping them: don't guess
     uv run scripts/write_bids_metadata.py --list-columns /raw/demographics.xlsx
 
     # no demographics available
@@ -65,7 +65,7 @@ def build_participants(bids_root, demographics_file, column_map):
     subjects = sorted(d[4:] for d in os.listdir(bids_root)
                       if d.startswith("sub-") and os.path.isdir(os.path.join(bids_root, d)))
     if not subjects:
-        sys.exit(f"error: no sub-* directories under {bids_root} -- convert recordings first")
+        sys.exit(f"error: no sub-* directories under {bids_root}: convert recordings first")
 
     if not (demographics_file and column_map):
         return pd.DataFrame({"participant_id": [f"sub-{s}" for s in subjects]})
@@ -96,7 +96,7 @@ def build_participants(bids_root, demographics_file, column_map):
 
 
 def build_participants_json(columns, described):
-    """Describe exactly the columns present -- never more."""
+    """Describe exactly the columns present: never more."""
     out = {}
     for col in columns:
         if col in described:
@@ -128,7 +128,7 @@ def main():
     p.add_argument("--ethics-approvals", help="Comma-separated ethics approval references named by the source")
     p.add_argument("--dataset-type", default="raw", choices=["raw", "derivative"])
     p.add_argument("--generated-by-name", help="Pipeline name. REQUIRED for --dataset-type derivative (GeneratedBy is mandatory there); should be a substring of the derivatives/<pipeline>/ folder name.")
-    p.add_argument("--generated-by-description", help="What the pipeline did, from the source's own docs -- not a guess.")
+    p.add_argument("--generated-by-description", help="What the pipeline did, from the source's own docs: not a guess.")
     p.add_argument("--demographics-file")
     p.add_argument("--column-map", help='JSON {source_column: bids_column}, one mapping to "participant_id"')
     p.add_argument("--column-descriptions", help="JSON {bids_column: {Description, Levels, Units}} for columns BIDS doesn't already define")

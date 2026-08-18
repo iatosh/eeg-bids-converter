@@ -5,7 +5,7 @@
 # ]
 # ///
 """Patch fields into one or more *_eeg.json sidecars that mne-bids cannot
-infer from the raw data itself -- chiefly EEGReference, EEGGround,
+infer from the raw data itself: chiefly EEGReference, EEGGround,
 Manufacturer, ManufacturersModelName, CapManufacturer, EEGPlacementScheme.
 (PowerLineFrequency should instead be set via convert_recording.py's
 --line-freq, which sets raw.info["line_freq"] before the initial write --
@@ -13,7 +13,7 @@ that's the correct mne-bids idiom; patching it here after the fact works
 too but isn't preferred.)
 
 These values are always dataset-level facts you get from the original
-paper/README/hardware documentation -- never invent or guess them. If a
+paper/README/hardware documentation: never invent or guess them. If a
 field is genuinely unknown after checking, leave it "n/a" rather than
 patch in a plausible-sounding guess.
 
@@ -69,14 +69,14 @@ def main():
     matches = search_path.match(ignore_json=False)
 
     # match() walks the whole tree including derivatives/, but resolves
-    # everything it finds against --bids-root -- so a derivatives recording
+    # everything it finds against --bids-root: so a derivatives recording
     # comes back as a raw-root path that doesn't exist. Keeping only paths
     # that are really there confines each run to its own dataset; patch a
     # derivatives dataset by pointing --bids-root at it directly.
     kept = [bp for bp in matches if os.path.exists(bp.fpath)]
     if len(kept) != len(matches):
         print(f"skipping {len(matches) - len(kept)} match(es) belonging to another dataset "
-              f"(likely under derivatives/ -- patch those with --bids-root set to that directory)")
+              f"(likely under derivatives/: patch those with --bids-root set to that directory)")
     matches = kept
 
     if not matches:

@@ -1,0 +1,32 @@
+{
+    "participant_id": {
+        "Description": "Unique participant identifier."
+    },
+    "age": {
+        "Description": "Age of the participant at the time of recording.",
+        "Units": "years"
+    },
+    "sex": {
+        "Description": "Sex of the participant as reported by the source dataset.",
+        "Levels": {
+            "F": "female",
+            "M": "male",
+            "O": "other"
+        }
+    },
+    "handedness": {
+        "Description": "Handedness of the participant as reported by the source dataset.",
+        "Levels": {
+            "L": "left",
+            "R": "right",
+            "A": "ambidextrous"
+        }
+    },
+    "group": {
+        "Description": "Study group the participant belongs to.",
+        "Levels": {
+            "control": "Healthy control",
+            "patient": "Clinical group"
+        }
+    }
+}

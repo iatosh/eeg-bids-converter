@@ -1,0 +1,6 @@
+onset	duration	trial_type	value	response_time
+1.024	0	go	1	0.412
+2.560	0	nogo	2	n/a
+4.096	0	go	1	0.389
+5.632	0	nogo	2	n/a
+7.168	0	go	1	0.401

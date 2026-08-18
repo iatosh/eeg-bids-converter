@@ -1,0 +1,31 @@
+{
+    "TaskName": "gonogo",
+    "TaskDescription": "Visual Go/No-Go. Press the space bar for Go stimuli, withhold for No-Go.",
+    "Instructions": "Respond as quickly as possible to the blue square. Do not respond to the red square.",
+    "InstitutionName": "Example University",
+    "InstitutionAddress": "1-1-1 Example Street, Example City, Japan",
+    "InstitutionalDepartmentName": "Department of Example Engineering",
+    "Manufacturer": "TMSi",
+    "ManufacturersModelName": "Refa 72-channel amplifier",
+    "CapManufacturer": "TMSi",
+    "CapManufacturersModelName": "n/a",
+    "EEGReference": "Linked earlobes",
+    "EEGGround": "n/a",
+    "EEGPlacementScheme": "10-10 international system",
+    "SamplingFrequency": 500,
+    "PowerLineFrequency": 50,
+    "SoftwareFilters": "n/a",
+    "HardwareFilters": {
+        "HighpassFilter": {"CutoffFrequency": 0.1},
+        "LowpassFilter": {"CutoffFrequency": 200}
+    },
+    "EEGChannelCount": 3,
+    "EOGChannelCount": 1,
+    "ECGChannelCount": 0,
+    "EMGChannelCount": 0,
+    "MISCChannelCount": 0,
+    "TriggerChannelCount": 0,
+    "RecordingDuration": 10.0,
+    "RecordingType": "continuous",
+    "SubjectArtefactDescription": "T7 noisy throughout; marked bad in channels.tsv."
+}

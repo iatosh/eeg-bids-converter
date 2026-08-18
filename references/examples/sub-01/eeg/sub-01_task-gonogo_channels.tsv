@@ -1,0 +1,5 @@
+name	type	units	status	status_description
+Fz	EEG	V	good	n/a
+Cz	EEG	V	good	n/a
+T7	EEG	V	bad	High-amplitude noise throughout the recording
+VEOG	EOG	V	good	n/a

@@ -6,13 +6,13 @@
 # ///
 """Run the official BIDS validator against a converted dataset and print a
 clean errors/warnings summary. None of the ~44 legacy notebooks in the old
-archive ever ran a validator at all -- this is the step that catches
+archive ever ran a validator at all: this is the step that catches
 whatever the rest of the pipeline got wrong (missing sidecar fields, n/a
 where a value belongs, filename/entity mistakes) before you call the
 conversion done.
 
 Wraps the `bids-validator-deno` package (a self-contained Deno-based
-validator, installable via uv/pip -- no separate Node/Deno setup needed).
+validator, installable via uv/pip: no separate Node/Deno setup needed).
 
 Exit code is 0 only if the validator reports zero errors (warnings alone
 do not fail this script, but are printed and worth reviewing).
@@ -31,7 +31,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("bids_root")
     parser.add_argument("--ignore-warnings", action="store_true", help="Don't print warnings, only errors")
-    parser.add_argument("--recursive", action="store_true", help="Also validate any derivatives/ subdirectories. Pass this whenever the dataset has a derivatives/<pipeline>/ tree -- without it, the validator only checks the raw dataset and silently skips derivatives content.")
+    parser.add_argument("--recursive", action="store_true", help="Also validate any derivatives/ subdirectories. Pass this whenever the dataset has a derivatives/<pipeline>/ tree: without it, the validator only checks the raw dataset and silently skips derivatives content.")
     args = parser.parse_args()
 
     cmd = ["bids-validator-deno", args.bids_root, "--format", "json"]

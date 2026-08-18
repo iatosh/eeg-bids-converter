@@ -1,8 +1,8 @@
 # When events don't come from embedded annotations
 
 Read this when the recording's events live somewhere other than annotations
-mne already reads -- a trigger channel, a marker array, a separate csv/tsv/
-txt/mat file -- or when you need to document what the trigger codes mean.
+mne already reads: a trigger channel, a marker array, a separate csv/tsv/
+txt/mat file. Also when you need to document what the trigger codes mean.
 
 If `mne.io.read_raw(...).annotations` already holds the events, you don't
 need this file: pass `--annotations-only` and mne-bids writes both
@@ -23,7 +23,7 @@ The target is always one of exactly two things:
 | annotations on the Raw | `--annotations-only` | mne-bids, automatically |
 | a table you built | `--events-csv <path>` | **you**, via `--events-descriptions` |
 
-Never both for one recording -- two writers race over one `events.tsv`.
+Never both for one recording. Two writers race over one `events.tsv`.
 Neither is correct only when the recording genuinely has no events.
 
 The `--events-csv` path has no automatic `events.json`, so
@@ -59,7 +59,7 @@ raw.set_annotations(mne.Annotations(
 
 **External event file** (csv/tsv/txt/lab/tse_agg/mat): parse it, compute
 onset and duration in seconds, write `onset,duration,trial_type[,value]`,
-pass it to `--events-csv`. Don't hand-write `events.tsv` directly -- that is
+pass it to `--events-csv`. Do not hand-write `events.tsv` directly. That is
 how you get two writers disagreeing.
 
 Check the units the source used. Onsets recorded in milliseconds or in
@@ -74,7 +74,7 @@ Look up what the numbers mean in the dataset's own docs before building
 right there.
 
 If the codes really are undocumented, keep the raw number in a `value`
-column and say so -- don't name them by guess:
+column and say so. Do not name them by guess.
 
 ```bash
 --events-descriptions '{"value": {"Description":
@@ -90,13 +90,13 @@ validator will ever flag it.
 REQUIRED: `onset` (seconds from acquisition start, negative allowed),
 `duration` (seconds, >= 0; `0` = instantaneous event).
 
-Common/recommended: `trial_type` (categorical label -- use this, not
+Common/recommended: `trial_type` (categorical label, use this rather than
 `description`), `response_time`, `stim_file`, `value`, `sample`, `HED`,
 `channel`.
 
 Rules: sort by ascending `onset`; missing values are the literal string
-`"n/a"`, never blank; document non-obvious columns -- especially categorical
-`trial_type`/`value` codes -- in the accompanying `_events.json` via
+`"n/a"`, never blank. Document non-obvious columns, especially categorical
+`trial_type`/`value` codes, in the accompanying `_events.json` via
 `Levels`.
 
 `task-<label>_events.json` may live at the dataset root and be inherited by

@@ -2,7 +2,7 @@
 
 **Read this only after `mne.io.read_raw` has actually failed on the file.**
 `convert_recording.py` delegates reading to mne, which ships 30 readers and
-covers far more than the obvious four -- Curry `.cdt`, EGI `.mff`, Persyst
+covers far more than the obvious four: Curry `.cdt`, EGI `.mff`, Persyst
 `.lay`, Nihon Kohden `.EEG`, ANT `.cnt` and others all read natively. Assuming
 a format is unsupported because it looks proprietary is how datasets end up
 hand-parsed for no reason.
@@ -10,7 +10,7 @@ hand-parsed for no reason.
 That mistake is expensive. A hand-written parser that guesses the sample
 layout wrong yields a file with the right channel names, the right sample
 count, the right sampling rate, and a waveform that correlates with the real
-signal at r = 0.000 -- and the BIDS validator reports zero errors. This is not
+signal at r = 0.000, and the BIDS validator reports zero errors. This is not
 hypothetical; it happened to a 133-channel Curry recording that
 `mne.io.read_raw_curry` reads in one line.
 
@@ -35,7 +35,7 @@ import mne
 
 info = mne.create_info(ch_names, sfreq=sfreq, ch_types=ch_types)  # "eeg"/"eog"/"ecg"/"misc"
 raw = mne.io.RawArray(data, info, verbose=False)                  # data: (n_channels, n_samples), VOLTS
-# raw.set_annotations(...)   # if you have events -- see references/events.md
+# raw.set_annotations(...)   # if you have events, see references/events.md
 raw.save("/tmp/sub01_raw.fif", overwrite=True)
 ```
 ```bash
@@ -45,7 +45,7 @@ uv run scripts/convert_recording.py --input /tmp/sub01_raw.fif --format fif \
 Delete the temp `.fif` afterward; it's scratch, not output.
 
 **Units.** MNE/BIDS expect volts. Most `.mat` exports store microvolts and
-need `* 1e-6` -- but verify per dataset rather than applying it reflexively;
+need `* 1e-6`, but verify per dataset rather than applying it reflexively.
 some store volts already, and some record the unit in a separate metadata
 column. Getting this wrong scales every downstream analysis by 10^6 and
 nothing in the pipeline will catch it.
@@ -59,7 +59,7 @@ exactly the failure described at the top of this file.
 ## Checking that you parsed it correctly
 
 `convert_recording.py` verifies the file it writes against the Raw you hand
-it, so a bad parse survives that check -- both sides are equally wrong.
+it, so a bad parse survives that check. Both sides are equally wrong.
 Verify the `RawArray` itself, before writing anything. Two cheap statistics
 separate a good parse from a scrambled one:
 
@@ -95,13 +95,13 @@ genuinely stationary noise, but autocorrelation only collapses when the time
 axis itself is wrong. If either looks like the right-hand column, re-read the
 file's own header for its sample layout instead of adjusting the numbers.
 
-Where a reference reader exists at all -- even a slow or partial one -- read
+Where a reference reader exists at all, even a slow or partial one, read
 the same file both ways and correlate. That is the only check that catches a
 parse which is self-consistently wrong.
 
 ## Exploring an unknown .mat file
 
-Look before writing a loader -- field names differ in every dataset:
+Look before writing a loader. Field names differ in every dataset.
 
 ```python
 # /// script
@@ -136,7 +136,7 @@ data = eeg.data.astype(float) * 1e-6        # verify the scale factor
 sfreq = float(eeg.srate)
 ```
 
-v7.3 / HDF5 -- note arrays come back transposed relative to scipy:
+v7.3 / HDF5. Note arrays come back transposed relative to scipy:
 ```python
 import h5py
 with h5py.File(path, "r") as f:
@@ -147,7 +147,7 @@ Cell arrays (e.g. channel-name lists) are arrays of HDF5 object references;
 dereference each with `f[ref]` before decoding.
 
 If the `.mat` also carries digitized electrode coordinates, see
-`references/electrodes.md` -- real positions are worth keeping and are
+`references/electrodes.md`. Real positions are worth keeping and are
 routinely dropped by accident.
 
 ## One source file, several recordings
@@ -179,4 +179,4 @@ Left-hand and right-hand motor imagery are the awkward case: they are two
 conditions of one paradigm, so `--task imagery` with the side recorded as an
 event/`trial_type` is usually truer than inventing two tasks. If the source
 stores them as separate continuous recordings with no shared timeline, two
-tasks or two runs are both defensible -- pick one, and record why.
+tasks or two runs are both defensible. Pick one, and record why.

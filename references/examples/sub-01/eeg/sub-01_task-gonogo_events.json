@@ -1,0 +1,22 @@
+{
+    "trial_type": {
+        "LongName": "Stimulus category",
+        "Description": "Which stimulus was shown on this trial.",
+        "Levels": {
+            "go": "Blue square, response required",
+            "nogo": "Red square, response withheld"
+        }
+    },
+    "value": {
+        "LongName": "Trigger code",
+        "Description": "Raw trigger code as recorded by the amplifier.",
+        "Levels": {
+            "1": "Go stimulus onset",
+            "2": "No-Go stimulus onset"
+        }
+    },
+    "response_time": {
+        "Description": "Time from stimulus onset to button press. 'n/a' on No-Go trials and on Go trials with no response.",
+        "Units": "s"
+    }
+}

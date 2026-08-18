@@ -1,0 +1,20 @@
+# Visual Go/No-Go EEG
+
+Worked example accompanying the eeg-bids-converter skill. One participant, one
+run, shortened to keep the example small. Not real data.
+
+## What was recorded
+
+64-channel EEG plus two EOG channels, sampled at 500 Hz, during a visual
+Go/No-Go task. Participants pressed the space bar for Go stimuli and withheld
+the response for No-Go stimuli.
+
+## Known issues
+
+Channel T7 was noisy throughout and is marked `bad` in `channels.tsv`.
+
+## Provenance
+
+Source archive: https://doi.org/10.5281/zenodo.0000000
+Converted with the eeg-bids-converter skill. `EEGGround` was not stated in the
+source documentation and is recorded as "n/a" rather than guessed.
