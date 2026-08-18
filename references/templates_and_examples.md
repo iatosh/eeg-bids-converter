@@ -82,6 +82,30 @@ blank. When trigger codes are undocumented, keep `value` and say in
 known data-quality issues, the source URL, and what was inferred rather than
 read.
 
+## Which of these files you actually need
+
+`templates/` is a menu, not a checklist. Copying all of it produces a dataset
+full of forms nobody filled. Only four files are REQUIRED in every EEG dataset:
+
+| File | Level | Needed |
+|---|---|---|
+| `dataset_description.json` | root | **REQUIRED** |
+| `README` | root | **REQUIRED** |
+| `sub-<label>/eeg/..._eeg.<ext>` | recording | **REQUIRED** (the data) |
+| `sub-<label>/eeg/..._eeg.json` | recording | **REQUIRED** |
+| `participants.tsv` + `participants.json` | root | RECOMMENDED, expected in practice |
+| `..._channels.tsv` | recording | RECOMMENDED, written by mne-bids |
+| `..._events.tsv` + `..._events.json` | recording | only if the recording has events |
+| `CHANGES` | root | OPTIONAL |
+| `LICENSE` | root | OPTIONAL, and only if you know the licence |
+| `task-<label>_eeg.json` | root | OPTIONAL, see below |
+| `..._electrodes.tsv` + `..._coordsystem.json` | recording | OPTIONAL, and wrong unless positions were measured |
+
+An absent optional file is a statement that the dataset does not have that
+information. A present one filled with placeholders or plausible guesses is a
+false statement. The first is always better.
+
+
 ## The root-level `task-<label>_eeg.json`
 
 Optional, and the one file mne-bids will not write for you. It sits at the
@@ -102,13 +126,21 @@ per-recording ones. Leaving it out is equally valid; nothing breaks.
 
 ## `electrodes.tsv` and `coordsystem.json`
 
-Templated because `references/electrodes.md` explains when they are allowed and
-this shows the shape. Note they carry no `task-` entity: electrode positions
+Both files are OPTIONAL, and writing them is wrong unless the positions were
+really measured on these participants. Expanding a template montage into
+coordinates produces a fabricated `electrodes.tsv`, which is a spec violation;
+an absent one is fine. `references/electrodes.md` covers the decision. Read it
+before filling these in.
+
+If you do write them, note they carry no `task-` entity: electrode positions
 belong to the session, not to one task, and the spec says not to duplicate them
-per data file. Only write them when the positions were really measured. See
-`electrodes.md` before filling these in.
+per data file. If `electrodes.tsv` exists, `coordsystem.json` MUST exist too.
 
 ## Files not templated here
+
+`LICENSE` holds the full text of the licence named in
+`dataset_description.json`. Optional, and only worth adding once someone has
+told you which licence applies.
 
 `_scans.tsv` is written by mne-bids. `sessions.tsv`, `_channels.json`,
 `_physio.tsv.gz`, `_stim.tsv.gz` and `_photo.*` are valid BIDS but rare in a
