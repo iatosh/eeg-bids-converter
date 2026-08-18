@@ -91,7 +91,7 @@ validator does not always object, so check the shape rather than assuming.
 
 **RECOMMENDED**: `CapManufacturer`, `CapManufacturersModelName`,
 `EEGChannelCount`, `ECGChannelCount`, `EMGChannelCount`, `EOGChannelCount`,
-`MISCChannelCount`, `TriggerChannelCount`, `RecordingDuration`,
+`MiscChannelCount`, `TriggerChannelCount`, `RecordingDuration`,
 `RecordingType` (`continuous`/`epoched`/`discontinuous`), `EpochLength`,
 `EEGGround`, `HeadCircumference`, `EEGPlacementScheme`, `HardwareFilters`,
 `SubjectArtefactDescription`, `Manufacturer`, `ManufacturersModelName`,
@@ -103,8 +103,11 @@ validator does not always object, so check the shape rather than assuming.
 `ElectricalStimulationParameters` (string).
 
 Types matter. `RecordingDuration` is a number, not `"1834.8"`.
-`ElectricalStimulation` is a boolean, not `"True"`. The channel-count key is
-`MISCChannelCount`, all caps, unlike every other `*ChannelCount`.
+`ElectricalStimulation` is a boolean, not `"True"`.
+
+The misc channel count is `MiscChannelCount`. `MISCChannelCount` exists as a
+deprecated alias, and older documentation tables still show it, but the schema
+marks it deprecated and says new datasets SHOULD use `MiscChannelCount`.
 
 `write_raw_bids()` auto-fills `SamplingFrequency` and the `*ChannelCount`
 fields from `raw.info`, and sometimes infers `EEGPlacementScheme` from

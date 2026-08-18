@@ -16,14 +16,18 @@
     "PowerLineFrequency": 50,
     "SoftwareFilters": "n/a",
     "HardwareFilters": {
-        "HighpassFilter": {"CutoffFrequency": 0.1},
-        "LowpassFilter": {"CutoffFrequency": 200}
+        "HighpassFilter": {
+            "CutoffFrequency": 0.1
+        },
+        "LowpassFilter": {
+            "CutoffFrequency": 200
+        }
     },
     "EEGChannelCount": 3,
     "EOGChannelCount": 1,
     "ECGChannelCount": 0,
     "EMGChannelCount": 0,
-    "MISCChannelCount": 0,
+    "MiscChannelCount": 0,
     "TriggerChannelCount": 0,
     "RecordingDuration": 10.0,
     "RecordingType": "continuous",

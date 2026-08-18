@@ -216,6 +216,13 @@ uv run scripts/validate_bids.py <bids_root> [--recursive]
 Fix root causes and re-run until zero errors. Never silence an error to make
 it pass. Warnings about genuinely-absent optional metadata are expected.
 
+Lines prefixed `KEY` come from a second check, not from the official
+validator. It compares your sidecar keys against `references/examples/`, a
+hand-checked dataset, and reports misspellings and malformed data
+dictionaries. The official validator ignores a key it does not recognise, so
+a miscapitalized field is silently absent rather than reported wrong. Three
+of four such defects passed it cleanly when measured.
+
 **Zero errors is not "done".** The validator checks structure: filenames,
 required fields, column names. It cannot see that a sidecar states hardware
 the recording never used, that a trigger code was named by guess, or that the

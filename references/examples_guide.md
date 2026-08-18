@@ -36,8 +36,9 @@ validator does not reliably catch either. Every column here exists in
 
 **`sub-01_task-gonogo_eeg.json`** shows the types that get written wrong:
 `RecordingDuration` is a number, not `"10.0"`. `SamplingFrequency` and
-`PowerLineFrequency` are numbers. `MISCChannelCount` is all caps, unlike every
-other `*ChannelCount`. `HardwareFilters` is an object; `SoftwareFilters` is
+`PowerLineFrequency` are numbers. The misc count is `MiscChannelCount`;
+`MISCChannelCount` is a deprecated alias that some documentation tables still
+show. `HardwareFilters` is an object; `SoftwareFilters` is
 `"n/a"` here because none were applied, which is the honest value, not a
 placeholder.
 

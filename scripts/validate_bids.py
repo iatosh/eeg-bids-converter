@@ -23,8 +23,112 @@ Usage:
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
+
+
+
+# The official validator checks every key it recognises, but it ignores keys it
+# does not. Measured on a deliberately broken copy of references/examples:
+#
+#   RecordingDuration: "10.0" instead of 10.0   -> 1 error   (caught)
+#   MISCChannelCount spelled MiscChannelCount   -> 0 errors  (ignored)
+#   "age": [{...}] instead of "age": {...}      -> 0 errors  (ignored)
+#   "Levels" spelled "levels"                   -> 0 errors  (ignored)
+#
+# A misspelled key is not a missing key to the validator, it is a key from some
+# other vocabulary, so it passes. Three of those four defects ship in real lab
+# templates. references/examples is a hand-checked dataset that the validator
+# reports 0 errors on, so its key names and shapes are usable as the reference
+# nothing else provides.
+
+EXAMPLES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "references", "examples")
+
+# Data dictionaries: every column maps to one object, and these are the only
+# keys allowed inside it (BIDS common-principles, PascalCase).
+DICT_KEYS = {"LongName", "Description", "Format", "Levels", "Units",
+             "Delimiter", "TermURL", "HED", "Minimum", "Maximum"}
+
+
+def _known_keys(root):
+    """Every JSON key used anywhere in the reference dataset."""
+    keys = set()
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            keys.update(obj)
+            for v in obj.values():
+                walk(v)
+        elif isinstance(obj, list):
+            for v in obj:
+                walk(v)
+
+    for dirpath, _, filenames in os.walk(root):
+        for fn in filenames:
+            if fn.endswith(".json"):
+                try:
+                    with open(os.path.join(dirpath, fn)) as f:
+                        walk(json.load(f))
+                except (OSError, json.JSONDecodeError):
+                    pass
+    return keys | DICT_KEYS
+
+
+def check_against_example(bids_root):
+    """Report what the validator structurally cannot: misspelled keys and
+    malformed data dictionaries. Returns a list of message strings."""
+    known = _known_keys(EXAMPLES)
+    if not known:
+        return []
+    folded = {k.lower(): k for k in known}
+    problems = []
+
+    for dirpath, dirnames, filenames in os.walk(bids_root):
+        dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+        for fn in sorted(filenames):
+            if not fn.endswith(".json"):
+                continue
+            path = os.path.join(dirpath, fn)
+            rel = os.path.relpath(path, bids_root)
+            try:
+                with open(path) as f:
+                    doc = json.load(f)
+            except (OSError, json.JSONDecodeError) as exc:
+                problems.append(f"{rel}: not readable as JSON ({exc})")
+                continue
+            if not isinstance(doc, dict):
+                continue
+
+            def inspect(node, where):
+                if isinstance(node, list):
+                    for item in node:
+                        inspect(item, where)
+                    return
+                if not isinstance(node, dict):
+                    return
+                for key, value in node.items():
+                    expected = folded.get(key.lower())
+                    if expected and expected != key:
+                        problems.append(
+                            f"{rel}: key {key!r}{where} should be {expected!r}. "
+                            f"The validator ignores keys it does not recognise, so "
+                            f"this field is silently absent rather than wrong.")
+
+                    # A data dictionary entry is one object per column. An array
+                    # is the most common malformation and passes validation.
+                    if isinstance(value, list) and value and isinstance(value[0], dict) \
+                            and DICT_KEYS & set(value[0]):
+                        problems.append(
+                            f"{rel}: column {key!r} maps to a list. A data dictionary "
+                            f"maps each column to one object: "
+                            f"{{\"{key}\": {{...}}}}, not [{{...}}].")
+                    else:
+                        inspect(value, f" under {key!r}")
+
+            inspect(doc, "")
+
+    return problems
 
 
 def main():
@@ -80,8 +184,13 @@ def main():
             if reason:
                 print(f"       {reason}")
 
-    if errors:
-        print(f"\n{len(errors)} error(s) must be fixed before this dataset is valid BIDS.")
+    extra = check_against_example(args.bids_root)
+    for msg in extra:
+        print(f"KEY    {msg}")
+
+    if errors or extra:
+        n = len(errors) + len(extra)
+        print(f"\n{n} problem(s) must be fixed before this dataset is valid BIDS.")
         sys.exit(1)
     print("\nNo errors. Dataset is valid BIDS.")
 
