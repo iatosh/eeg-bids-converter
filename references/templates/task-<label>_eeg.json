@@ -1,0 +1,15 @@
+{
+    "TaskName": "<REQUIRED here whenever a task- entity is used | string>",
+    "TaskDescription": "<RECOMMENDED | string>",
+    "Instructions": "<RECOMMENDED | string>",
+    "EEGReference": "<REQUIRED | string>",
+    "PowerLineFrequency": "<REQUIRED | number>",
+    "SoftwareFilters": "<REQUIRED | object or n/a>",
+    "Manufacturer": "<RECOMMENDED | string>",
+    "ManufacturersModelName": "<RECOMMENDED | string>",
+    "CapManufacturer": "<RECOMMENDED | string>",
+    "EEGGround": "<RECOMMENDED | string>",
+    "EEGPlacementScheme": "<RECOMMENDED | string>",
+    "InstitutionName": "<RECOMMENDED | string>",
+    "InstitutionAddress": "<RECOMMENDED | string>"
+}

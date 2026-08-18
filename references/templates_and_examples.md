@@ -81,3 +81,35 @@ blank. When trigger codes are undocumented, keep `value` and say in
 **`README`** covers what the sidecars cannot: what was recorded, the paradigm,
 known data-quality issues, the source URL, and what was inferred rather than
 read.
+
+## The root-level `task-<label>_eeg.json`
+
+Optional, and the one file mne-bids will not write for you. It sits at the
+dataset root and applies to every recording whose filename carries that
+`task-<label>`, in every subject and session, because it names no entity the
+data files lack. That is the inheritance principle: keys load from the top of
+the tree downwards, and a key repeated in a recording's own `_eeg.json`
+overrides it for that recording only.
+
+Use it for what is identical across the dataset: the hardware, the reference,
+the line frequency, the task description. The per-recording sidecars then carry
+only what genuinely varies. On a 100-subject dataset that is the difference
+between one edit and a hundred.
+
+`convert_recording.py` writes per-recording sidecars. If you want the
+inheritance, write this file by hand and delete the duplicated keys from the
+per-recording ones. Leaving it out is equally valid; nothing breaks.
+
+## `electrodes.tsv` and `coordsystem.json`
+
+Templated because `references/electrodes.md` explains when they are allowed and
+this shows the shape. Note they carry no `task-` entity: electrode positions
+belong to the session, not to one task, and the spec says not to duplicate them
+per data file. Only write them when the positions were really measured. See
+`electrodes.md` before filling these in.
+
+## Files not templated here
+
+`_scans.tsv` is written by mne-bids. `sessions.tsv`, `_channels.json`,
+`_physio.tsv.gz`, `_stim.tsv.gz` and `_photo.*` are valid BIDS but rare in a
+conversion; see `bids_reference.md` or the spec if a dataset needs one.

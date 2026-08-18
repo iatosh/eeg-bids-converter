@@ -1,0 +1,9 @@
+{
+    "EEGCoordinateSystem": "<REQUIRED | string | e.g. CapTrak, Other. If Other, describe it below>",
+    "EEGCoordinateUnits": "<REQUIRED | string | m, cm or mm>",
+    "EEGCoordinateSystemDescription": "<RECOMMENDED when EEGCoordinateSystem is Other | string>",
+    "FiducialsDescription": "<OPTIONAL | string | how nasion, LPA and RPA were located>",
+    "FiducialsCoordinates": "<OPTIONAL | object | {\"NAS\": [x,y,z], \"LPA\": [...], \"RPA\": [...]}>",
+    "FiducialsCoordinateSystem": "<OPTIONAL | string>",
+    "FiducialsCoordinateUnits": "<OPTIONAL | string>"
+}

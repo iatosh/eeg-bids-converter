@@ -1,0 +1,3 @@
+name	x	y	z	type	material	impedance
+<REQUIRED, must match a name in channels.tsv>	<REQUIRED, number>	<REQUIRED, number>	<REQUIRED, number>	<OPTIONAL>	<OPTIONAL>	<OPTIONAL, kOhm>
+Cz	0.0000	0.0000	0.0900	cup	Ag/AgCl	5.0

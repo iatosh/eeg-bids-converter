@@ -86,8 +86,23 @@ def check_against_example(bids_root):
     known = _known_keys(KEY_SOURCES)
     if not known:
         return []
-    folded = {k.lower(): k for k in known}
+
+    # examples/ and templates/ are edited by hand and must agree. If the same
+    # key appears in both spellings, this checker would accept either and the
+    # reader would copy whichever they happened to open. Say so rather than
+    # silently picking one.
     problems = []
+    by_fold = {}
+    for k in known:
+        by_fold.setdefault(k.lower(), set()).add(k)
+    for variants in by_fold.values():
+        if len(variants) > 1:
+            problems.append(
+                f"references/ disagrees with itself about {sorted(variants)}. "
+                f"Fix the reference files; until then this check cannot judge "
+                f"that key.")
+
+    folded = {k.lower(): k for k in known}
 
     for dirpath, dirnames, filenames in os.walk(bids_root):
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]
