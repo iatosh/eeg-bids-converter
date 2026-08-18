@@ -30,7 +30,7 @@ lay (Persyst) and the rest. Do NOT assume a format is unsupported because it
 looks unusual; check first. Only for a format mne genuinely cannot read
 (custom .mat layouts, proprietary binary) build an mne.io.RawArray yourself,
 raw.save() it as .fif, and pass that with --format fif -- see
-references/mne_bids_cookbook.md. One write path for every source.
+references/custom_formats.md. One write path for every source.
 
 After writing, the output is read back and compared against the source
 (sampling rate, duration, waveform). The BIDS validator checks structure, not
@@ -161,7 +161,7 @@ def main():
     parser.add_argument("--list-montages", action="store_true", help="Print the standard montage names mne ships and exit")
     parser.add_argument("--annotations-only", action="store_true", help="Write events.tsv from raw.annotations (mutually exclusive with --events-csv)")
     parser.add_argument("--events-csv", default=None, help="Path to a CSV with onset,duration,trial_type[,value] columns (seconds); written directly, bypassing mne-bids' annotation-derived events (mutually exclusive with --annotations-only)")
-    parser.add_argument("--events-descriptions", default=None, help='Only with --events-csv: JSON dict documenting non-obvious event columns for the accompanying events.json, e.g. \'{"trial_type": {"Description": "Event category", "Levels": {"standard": "Frequent tone", "target": "Rare tone"}}}\'. Any --events-csv column not covered gets a generic placeholder description so the validator does not flag it as undocumented -- pass real Levels here whenever you know what the codes mean (see references/mne_bids_cookbook.md).')
+    parser.add_argument("--events-descriptions", default=None, help='Only with --events-csv: JSON dict documenting non-obvious event columns for the accompanying events.json, e.g. \'{"trial_type": {"Description": "Event category", "Levels": {"standard": "Frequent tone", "target": "Rare tone"}}}\'. Any --events-csv column not covered gets a generic placeholder description so the validator does not flag it as undocumented -- pass real Levels here whenever you know what the codes mean (see references/custom_formats.md).')
     parser.add_argument("--output-format", default="auto", help="BIDS output format: auto (default; keeps source format when BIDS-native and no preload is needed, else falls back to BrainVision), or explicitly EDF/BrainVision/EEGLAB (BDF is not a valid explicit target for mne-bids -- only reachable via 'auto' with no channel edits).")
     parser.add_argument("--anonymize-daysback", type=int, default=None, help="If set, shifts recording dates back this many days (mne-bids anonymize=). Use for any dataset with real subject-identifying dates.")
     parser.add_argument("--overwrite", action="store_true")

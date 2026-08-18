@@ -1,6 +1,6 @@
 ---
 name: eeg-bids-converter
-description: Converts arbitrary raw/messy EEG datasets (EDF, BrainVision, EEGLAB .set, Biosemi BDF, GDF, CNT, custom MATLAB .mat structs, or anything else mne can read or be coerced into) into a spec-valid BIDS (Brain Imaging Data Structure) dataset using mne/mne-bids, executed via `uv run` with no preinstalled environment required. Walks through directory scanning, subject/session/task/run entity parsing, per-recording conversion with correct sidecar metadata, participants.tsv/dataset_description.json generation, and BIDS-validator validation. Use this skill whenever the user wants to convert, BIDSify, restructure, or organize EEG data into BIDS format, prepare a raw EEG dataset for OpenNeuro/BIDS-Apps/sharing/publication, fix BIDS-validator errors on an EEG dataset, or mentions mne-bids, EEG-BIDS, or a folder of raw EEG recordings (EDF/GDF/BrainVision/etc.) that needs standardizing -- even if they don't use the exact words "BIDS" or "convert".
+description: Converts arbitrary raw/messy EEG datasets (EDF, BrainVision, EEGLAB .set, Biosemi BDF, GDF, CNT, Curry .cdt, custom MATLAB .mat structs, or anything else mne can read or be coerced into) into a spec-valid BIDS (Brain Imaging Data Structure) dataset using mne/mne-bids, executed via `uv run` with no preinstalled environment required. Walks through directory scanning, subject/session/task/run entity parsing, per-recording conversion with correct sidecar metadata, participants.tsv/dataset_description.json generation, and BIDS-validator validation. Use this skill whenever the user wants to convert, BIDSify, restructure, or organize EEG data into BIDS format, prepare a raw EEG dataset for OpenNeuro/BIDS-Apps/sharing/publication, fix BIDS-validator errors on an EEG dataset, or mentions mne-bids, EEG-BIDS, or a folder of raw EEG recordings (EDF/GDF/BrainVision/etc.) that needs standardizing -- even if they don't use the exact words "BIDS" or "convert".
 ---
 
 # EEG to BIDS converter
@@ -24,13 +24,28 @@ This applies to sidecar fields, event labels, and column descriptions alike.
 dataset's documentation, then the user, then `"n/a"`. Skipping the middle
 step throws away real information -- the user often knows the recording
 country, the lab, the hardware, or what a trigger code meant, even when the
-dataset never wrote it down. `"n/a"` is the honest answer only once both
-the docs and the user have come up empty. Ask when the answer changes the
-output and you can't derive it; don't ask about anything you could read
-from the data or the docs yourself.
+dataset never wrote it down. Ask when the answer changes the output and you
+can't derive it; don't ask about anything you could read from the data or
+the docs yourself. **When there is no user to ask** -- a batch run, a
+subagent, CI -- the ladder is docs then `"n/a"`, with nothing in between.
+Convention, plausibility, and what similar datasets usually do are not
+sources. Log the question you would have asked and report it in Step 7.
 
 Run any script with `--help` for its full arguments; this file covers when
 to use which, not every flag.
+
+## Situational references
+
+Most conversions need none of these. Read one only when you hit its
+situation; they are not background reading.
+
+| Situation | Read |
+|---|---|
+| `mne.io.read_raw` cannot open the file (custom `.mat`, proprietary binary) | `references/custom_formats.md` |
+| Events are not already in `raw.annotations` (trigger channel, marker array, external file), or you need to document trigger codes | `references/events.md` |
+| The dataset says anything about electrode positions, or you want `--montage` | `references/electrodes.md` |
+| The source ships already-filtered/processed copies of the recordings | `references/derivatives.md` |
+| You need a spec fact: entity rules, sidecar fields, channels.tsv columns, per-format quirks | `references/bids_reference.md` |
 
 ## Step 1: See what's there
 
@@ -40,16 +55,23 @@ uv run scripts/inspect_dataset.py <raw_root>
 
 Lists every extension, which files are readable EEG recordings, and which
 look like external event/metadata files. Then read the dataset's own
-README/paper -- that is where Steps 2 and 3 get their answers.
+README/paper -- that is where Steps 2 and 3 get their answers. If the docs
+name a DOI or landing page rather than explaining anything, that link is
+where the recording setup is written down.
+
+**If the input is already a BIDS tree** (`dataset_description.json` plus
+`sub-*/` at the root), this is not a conversion job. Run
+`scripts/validate_bids.py` on it, report what it says, and ask the user what
+they actually want -- re-converting an existing BIDS dataset into a second
+one is almost never it. A `sourcedata/` folder holding the original raw
+files is the exception: convert from there, not from the BIDS tree.
 
 Reading is delegated to `mne.io.read_raw`, so every format mne supports is
 handled -- including ones that look proprietary (`.cdt` Curry, `.mff` EGI,
-`.lay` Persyst). **Verify a format is really unreadable before writing your
-own parser for it**; a hand-written binary parser that guesses the sample
-layout wrong produces a file that passes the BIDS validator with zero errors
-and contains nothing but scrambled numbers. Only when mne genuinely cannot
-read the file (usually a custom `.mat` layout) go to
-`references/mne_bids_cookbook.md`.
+`.lay` Persyst). **A format you don't recognise is not a format that needs a
+custom parser.** Try `mne.io.read_raw` first; if it complains about a missing
+package, install the package. Only once it genuinely cannot read the file go
+to `references/custom_formats.md`.
 
 ## Step 2: Map filenames to BIDS entities
 
@@ -66,6 +88,9 @@ sessions. Iterate until every recording maps to entities that read
 correctly, not merely until the regex matches. Files that genuinely differ
 from the rest are fine as documented exceptions.
 
+This maps one file to one recording. A single source file holding several
+recordings is handled in `references/custom_formats.md`.
+
 ## Step 3: Collect what only the documentation and the user can answer
 
 From the dataset's paper, README, or hardware manual -- never from memory
@@ -74,7 +99,8 @@ data, so each is a decision somebody has to make:
 
 - **Recording setup**: `PowerLineFrequency` (50/60, follows the recording
   country), `EEGReference`, `EEGGround`, `Manufacturer`,
-  `ManufacturersModelName`, `CapManufacturer`, `EEGPlacementScheme`
+  `ManufacturersModelName`, `CapManufacturer`, `EEGPlacementScheme`,
+  `TaskDescription`, `InstitutionName`
 - **Event semantics**: what each trigger code means. Undocumented codes
   keep their raw number in `value` and say so; don't name them by guess.
 - **Entity ambiguity**: when a filename token could be session or run,
@@ -83,14 +109,12 @@ data, so each is a decision somebody has to make:
 - **Anonymization**: are recording dates identifiable?
 - **Extra data**: preprocessed copies, unused channels, files whose role
   isn't obvious -- keep, convert separately, or leave out?
-- **Provenance**: authors, license, how the dataset should be cited
+- **Provenance**: authors, license, DOI, how the dataset should be cited
 
 Take everything the documentation didn't answer back to the user in one
 batch -- not one question at a time, and not after the conversion is
 already written. Say what you found, what you couldn't, and what you'd
-otherwise record as `"n/a"` or decide arbitrarily. The user frequently
-knows what the dataset never wrote down: the recording country, the lab,
-which files matter, what a trigger code meant.
+otherwise record as `"n/a"` or decide arbitrarily.
 
 Whatever survives that conversation unanswered is genuinely `"n/a"`, and
 you report it as such in Step 7. `convert_recording.py` prints which of
@@ -115,45 +139,32 @@ Loop it over every recording (a shell/Python driver reading `entities.json`
 is expected). What must not vary between recordings is the script call
 itself.
 
+After each write the script re-reads the file it just produced and compares
+sampling rate, duration and waveform against the source. If that check
+fails, the output does not contain the input -- fix it before continuing;
+never work around it. Its silence is the only evidence you have that the
+signal survived, because the validator in Step 6 cannot tell you.
+
 **Events:** exactly one of `--annotations-only` (mne reads embedded
-annotations) or `--events-csv` (you built an onset/duration/trial_type
-table -- see the cookbook). Neither, only if the recording truly has no
-events. With `--events-csv` always pass `--events-descriptions` giving
-`Description` and `Levels` for the codes you decoded in Step 3; nothing
-else writes that events.json.
+annotations) or `--events-csv` (a table you built). Neither, only if the
+recording truly has no events. Anything beyond that --
+`references/events.md`.
 
 **Channel types:** EOG/ECG/trigger channels left as generic EEG produce a
 wrong `channels.tsv`. mne infers type from the data, not the name.
 
-**`--montage`:** only when the recording genuinely used that layout. If you
-know the scheme but not real digitized positions, skip it and set
-`EEGPlacementScheme` in Step 5 instead. A fabricated electrodes.tsv is a
-spec violation; an absent one is fine.
+**`--montage`:** only when the recording used that layout AND you have real
+measured positions. If you know the scheme but not the coordinates, skip the
+flag and set `EEGPlacementScheme` in Step 5. A fabricated electrodes.tsv is
+a spec violation; an absent one is fine. Details --
+`references/electrodes.md`.
 
-**Custom formats:** build a Raw, save `.fif`, pass it with `--format fif`
-(cookbook). Same script, same write path.
+**Output format:** BIDS accepts EDF, BrainVision, EEGLAB and BDF; anything
+else is converted to BrainVision on write. That is expected. Its one
+consequence is Step 5's.
 
-## Step 4b: Source-provided preprocessed data
-
-If the source ships an already-filtered copy alongside the raw data, it must
-not go in the raw `sub-*/` tree -- BIDS raw means minimally processed. Put
-it in a derivatives dataset, or skip it and say so in Step 7. Silently
-dropping it is the one option that isn't acceptable.
-
-```bash
-uv run scripts/convert_recording.py --input <processed_file> \
-    --bids-root <bids_root>/derivatives/<pipeline> \
-    --subject <sub> --task <task> --desc preproc --line-freq <50|60> --overwrite
-
-uv run scripts/write_bids_metadata.py \
-    --bids-root <bids_root>/derivatives/<pipeline> \
-    --name "<dataset name> (<pipeline>)" --authors "<same as raw>" \
-    --dataset-type derivative --generated-by-name <pipeline> \
-    --generated-by-description "<what the source says was done>"
-```
-
-Record the actual filter settings in `SoftwareFilters` via Step 5. Validate
-with `--recursive` in Step 6, or derivatives go unchecked.
+**Preprocessed copies shipped by the source** -- `references/derivatives.md`.
+They must not go in the raw `sub-*/` tree, and must not be silently dropped.
 
 ## Step 5: Patch the facts from Step 3
 
@@ -162,8 +173,19 @@ uv run scripts/patch_sidecar.py --bids-root <bids_root> \
     --entries '{"EEGReference":"...","EEGGround":"...","Manufacturer":"..."}'
 ```
 
-mne-bids writes these as `"n/a"` because it cannot know them. Narrow with
-`--subject`/`--task` etc. only if recordings genuinely differ.
+mne-bids leaves `EEGReference` and `EEGGround` as `"n/a"` because it cannot
+know them.
+
+`Manufacturer` is different and worse: mne-bids fills it from the extension
+of the file it *wrote*, so a Neuroscan recording converted to BrainVision
+comes out claiming `"Brain Products"`. It is not `"n/a"`, so nothing flags
+it as missing, and the validator has no opinion. `convert_recording.py`
+warns whenever it converted the format -- when it does, patch `Manufacturer`
+with the hardware the documentation names, or `"n/a"` if it names none.
+The same applies to `EEGPlacementScheme`, which the BrainVision writer fills
+with a generic string.
+
+Narrow with `--subject`/`--task` etc. only if recordings genuinely differ.
 
 ## Step 6: Dataset metadata, then validate
 
@@ -175,6 +197,7 @@ uv run scripts/write_bids_metadata.py --list-columns <demographics_file>   # if 
 
 uv run scripts/write_bids_metadata.py \
     --bids-root <bids_root> --name "<name>" --authors "A,B" --license CC0 \
+    [--doi <DatasetDOI> --references-and-links "<url>,<url>"] \
     [--demographics-file <path> --column-map '{"SubjID":"participant_id","Age":"age"}' \
      --column-descriptions '{"group":{"Description":"...","Levels":{...}}}'] \
     [--readme-text "$(cat readme.md)"]
@@ -186,11 +209,6 @@ saying so -- don't reach for age/sex/handedness columns the source never
 provided. Supply `--column-descriptions` for any non-standard column you
 mapped, using the source's own definitions.
 
-A good README states what was recorded, the task/paradigm, the source URL,
-known issues, and anything you inferred rather than read. The spec mandates
-no structure, so the useful content is whatever the machine-readable
-sidecars can't express.
-
 ```bash
 uv run scripts/validate_bids.py <bids_root> [--recursive]
 ```
@@ -198,14 +216,18 @@ uv run scripts/validate_bids.py <bids_root> [--recursive]
 Fix root causes and re-run until zero errors. Never silence an error to make
 it pass. Warnings about genuinely-absent optional metadata are expected.
 
+**Zero errors is not "done".** The validator checks structure: filenames,
+required fields, column names. It cannot see that a sidecar states hardware
+the recording never used, that a trigger code was named by guess, or that
+the samples were written in the wrong order. Conversions that were wrong in
+all three ways have passed it cleanly. What makes a conversion finished is
+the Step 4 read-back check passing for every recording and the Step 7 record
+being honest -- not the validator's exit code.
+
 ## Step 7: Report
 
 Tell the user what was converted, the validator result, and -- most
 importantly -- every judgment call from Step 3 with its source, plus
-anything you inferred, couldn't determine, or deliberately left out. That
-list is what makes the conversion auditable by someone who knows the data.
-
-## References
-
-- `references/bids_eeg_spec.md` -- entity rules, required/recommended sidecar fields, channels/events columns, derivatives requirements.
-- `references/mne_bids_cookbook.md` -- custom formats, .mat loading, event construction, per-format gotchas.
+anything you inferred, couldn't determine, or deliberately left out, and
+every question you would have asked had a user been available. That list is
+what makes the conversion auditable by someone who knows the data.

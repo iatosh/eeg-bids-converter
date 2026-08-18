@@ -121,6 +121,11 @@ def main():
     p.add_argument("--name", help="Dataset Name")
     p.add_argument("--authors", help="Comma-separated author names")
     p.add_argument("--license", dest="data_license", help="e.g. CC0")
+    p.add_argument("--doi", help="DatasetDOI, e.g. doi:10.18112/openneuro.ds000117.v1.0.0")
+    p.add_argument("--references-and-links", help="Comma-separated URLs/DOIs: the paper, the source archive. This is where 'how the dataset should be cited' actually lands.")
+    p.add_argument("--how-to-acknowledge", help="The source's own wording for how it wants to be credited")
+    p.add_argument("--funding", help="Comma-separated grant/funding sources named by the source")
+    p.add_argument("--ethics-approvals", help="Comma-separated ethics approval references named by the source")
     p.add_argument("--dataset-type", default="raw", choices=["raw", "derivative"])
     p.add_argument("--generated-by-name", help="Pipeline name. REQUIRED for --dataset-type derivative (GeneratedBy is mandatory there); should be a substring of the derivatives/<pipeline>/ folder name.")
     p.add_argument("--generated-by-description", help="What the pipeline did, from the source's own docs -- not a guess.")
@@ -149,6 +154,9 @@ def main():
         if args.generated_by_description:
             generated_by[0]["Description"] = args.generated_by_description
 
+    def _split(v):
+        return [x.strip() for x in v.split(",") if x.strip()] if v else None
+
     make_dataset_description(
         path=args.bids_root,
         name=args.name,
@@ -156,6 +164,13 @@ def main():
         authors=[a.strip() for a in args.authors.split(",")] if args.authors else None,
         data_license=args.data_license,
         generated_by=generated_by,
+        # Step 3 tells you to ask how the dataset should be cited; without these
+        # there is nowhere to put the answer and it gets thrown away.
+        doi=args.doi,
+        references_and_links=_split(args.references_and_links),
+        how_to_acknowledge=args.how_to_acknowledge,
+        funding=_split(args.funding),
+        ethics_approvals=_split(args.ethics_approvals),
         overwrite=True,
     )
     print("wrote dataset_description.json")

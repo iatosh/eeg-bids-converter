@@ -125,7 +125,7 @@ def main():
                 print(f"  ... and {len(maybe_events) - 20} more")
         if unreadable:
             print(f"\nno native mne reader for: {unreadable}")
-            print("  -> these need a custom loader; see references/mne_bids_cookbook.md")
+            print("  -> these need a custom loader; see references/custom_formats.md")
         if not recordings:
             print("\nNothing readable found. Check the path, or the data needs a custom loader.")
         return
