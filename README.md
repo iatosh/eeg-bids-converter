@@ -3,7 +3,10 @@
 <!-- BIDS logo: https://bids.neuroimaging.io/ -->
 <p align="center">
   <a href="https://bids.neuroimaging.io/">
-    <img src="assets/BIDS_Logo.png" alt="Brain Imaging Data Structure (BIDS): https://bids.neuroimaging.io/" width="220">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/BIDS_Logo_light.png">
+      <img src="assets/BIDS_Logo.png" alt="Brain Imaging Data Structure (BIDS): https://bids.neuroimaging.io/" width="75%">
+    </picture>
   </a>
 </p>
 
