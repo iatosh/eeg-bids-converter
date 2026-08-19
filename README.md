@@ -36,7 +36,7 @@ Converts raw EEG datasets into spec-valid [BIDS](https://bids.neuroimaging.io/) 
 
 ## Usage
 
-Invoke via `/eeg-bids-converter`.
+Invoke the `eeg-bids-converter` skill in your agent.
 
 ## How It Works
 
@@ -74,5 +74,3 @@ Invoke via `/eeg-bids-converter`.
 MIT. See [LICENSE](LICENSE).
 
 BIDS logo is (c) BIDS community: <https://bids.neuroimaging.io/>.
-
-
