@@ -3,7 +3,7 @@ name: eeg-bids-converter
 description: Converts arbitrary raw/messy EEG datasets (EDF, BrainVision, EEGLAB .set, Biosemi BDF, GDF, CNT, Curry .cdt, custom MATLAB .mat structs, or anything else mne can read or be coerced into) into a spec-valid BIDS (Brain Imaging Data Structure) dataset using mne/mne-bids, executed via `uv run` with no preinstalled environment required. Walks through directory scanning, subject/session/task/run entity parsing, per-recording conversion with correct sidecar metadata, participants.tsv/dataset_description.json generation, and BIDS-validator validation. Use this skill whenever the user wants to convert, BIDSify, restructure, or organize EEG data into BIDS format, prepare a raw EEG dataset for OpenNeuro/BIDS-Apps/sharing/publication, fix BIDS-validator errors on an EEG dataset, or mentions mne-bids, EEG-BIDS, or a folder of raw EEG recordings (EDF/GDF/BrainVision/etc.) that needs standardizing, even if they don't use the exact words "BIDS" or "convert".
 ---
 
-# EEG to BIDS converter
+# BIDS converter for EEG
 
 Run the steps in order. Each one runs a script or makes one scoped decision.
 The scripts handle everything mechanical. Your job is the part no script can
@@ -34,6 +34,30 @@ asked, and report it in Step 7.
 
 Run any script with `--help` for its full arguments. This file covers when to
 use which, not every flag.
+
+## Prerequisite: a runner
+
+Every command below is written `uv run scripts/<name>.py`. The scripts carry
+PEP 723 dependency blocks, so uv installs what each needs on first use.
+Check before Step 1:
+
+```bash
+uv --version
+```
+
+If that fails, stop and put the choice to the user. Install nothing yourself:
+
+- **uv** (<https://docs.astral.sh/uv/>), then run everything as written.
+- **An existing Python** 3.10+, with the scripts' dependencies installed into
+  it, then `python3` in place of `uv run` throughout:
+
+  ```bash
+  pip install "mne>=1.6" "mne-bids>=0.14" "pybv>=0.7.3" \
+      pandas openpyxl edfio eeglabio curryreader bids-validator-deno
+  ```
+
+Until one is done, do not do a script's work by hand instead. Every script
+here exists because that work has a way to get silently wrong.
 
 ## Situational references
 
