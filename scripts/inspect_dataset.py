@@ -66,8 +66,9 @@ def scan(raw_root):
             # reports a whole Nihon Kohden dataset as "0 readable recordings",
             # silently, which is the worst way to lose data. Only treat it as
             # a companion when the .vhdr it would belong to actually exists.
-            if ext == "eeg" and not os.path.exists(
-                    os.path.join(dirpath, fn.rsplit(".", 1)[0] + ".vhdr")):
+            if ext == "eeg" and not any(
+                    f.lower() == fn.rsplit(".", 1)[0].lower() + ".vhdr"
+                    for f in filenames):
                 pass
             elif ext in COMPANION_EXTENSIONS:
                 continue

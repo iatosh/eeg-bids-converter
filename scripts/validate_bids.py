@@ -61,9 +61,10 @@ def _known_keys(roots):
 
     def walk(obj):
         if isinstance(obj, dict):
-            keys.update(obj)
-            for v in obj.values():
-                walk(v)
+            keys.update(k for k in obj if k != "Levels")
+            for k, v in obj.items():
+                if k != "Levels":       # its keys are dataset values, not spec keys
+                    walk(v)
         elif isinstance(obj, list):
             for v in obj:
                 walk(v)
@@ -105,7 +106,9 @@ def check_against_example(bids_root):
     folded = {k.lower(): k for k in known}
 
     for dirpath, dirnames, filenames in os.walk(bids_root):
-        dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+        # sourcedata/ holds the untouched originals; its JSON is not BIDS.
+        dirnames[:] = [d for d in dirnames
+                       if not d.startswith(".") and d != "sourcedata"]
         for fn in sorted(filenames):
             if not fn.endswith(".json"):
                 continue
@@ -143,7 +146,10 @@ def check_against_example(bids_root):
                             f"{rel}: column {key!r} maps to a list. A data dictionary "
                             f"maps each column to one object: "
                             f"{{\"{key}\": {{...}}}}, not [{{...}}].")
-                    else:
+                    elif key != "Levels":
+                        # Inside Levels the keys are the dataset's own codes:
+                        # "m", "Control", "nogo". Comparing those against spec
+                        # key names fails valid datasets.
                         inspect(value, f" under {key!r}")
 
             inspect(doc, "")
@@ -178,7 +184,9 @@ def main():
         print(proc.stderr, file=sys.stderr)
         sys.exit(2)
 
-    issues = result["issues"]["issues"]
+    issues = result.get("issues", [])
+    if isinstance(issues, dict):            # bids-validator-deno is unpinned
+        issues = issues.get("issues", [])
     errors = [i for i in issues if i.get("severity") == "error"]
     warnings = [i for i in issues if i.get("severity") == "warning"]
 

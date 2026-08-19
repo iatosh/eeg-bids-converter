@@ -105,8 +105,12 @@ def build_raw(input_path: str, format_override: str | None, preload: bool = Fals
     import mne
 
     ext = (format_override or input_path.rsplit(".", 1)[-1]).lower()
+    # read_raw dispatches on the filename, so a file whose extension lies about
+    # its format needs the reader named explicitly. That is what --format is
+    # for; without it, let mne decide.
+    reader = getattr(mne.io, f"read_raw_{format_override}", None) if format_override else None
     try:
-        return mne.io.read_raw(input_path, preload=preload, verbose=False)
+        return (reader or mne.io.read_raw)(input_path, preload=preload, verbose=False)
     except FileNotFoundError as exc:
         raise SystemExit(f"error reading {input_path}: {exc}" +
                          (_diagnose_brainvision(input_path) if ext == "vhdr" else ""))
@@ -136,7 +140,7 @@ def apply_events_csv(raw, events_csv_path: str):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--input", help="Path to the raw recording file")
-    parser.add_argument("--format", dest="format_override", default=None, help="Override format detection (edf/bdf/vhdr/set/cnt/gdf/fif); default: infer from --input extension")
+    parser.add_argument("--format", dest="format_override", default=None, help="Name the mne reader when the file extension does not match the format (e.g. --format edf for an EDF file named .dat). Values are the mne.io.read_raw_<name> suffixes: edf/bdf/brainvision/eeglab/cnt/gdf/fif/curry/egi. Leave unset to let mne dispatch on the extension.")
     parser.add_argument("--bids-root")
     parser.add_argument("--subject", help="Sanitized subject label, no 'sub-' prefix")
     parser.add_argument("--session", default=None, help="Sanitized session label, no 'ses-' prefix")
@@ -176,8 +180,10 @@ def main():
     import mne
     from mne_bids import BIDSPath, write_raw_bids
 
-    ext = (args.format_override or args.input.rsplit(".", 1)[-1]).lower()
-    src_bids_format = bids_format(ext)
+    # Whether BIDS accepts the source as-is is a question about the file on
+    # disk, so it comes from the real extension. --format names a reader, not
+    # a BIDS format, and a file whose extension lies is not copyable anyway.
+    src_bids_format = bids_format(args.input.rsplit(".", 1)[-1])
 
     # format="auto" only works when mne-bids can copy the source through
     # untouched, which needs the source to already be a BIDS format AND the
@@ -351,10 +357,33 @@ def verify_written(source_raw, bids_path):
     if k and n > 1:
         a = source_raw.get_data(picks=range(k), start=0, stop=n)
         b = out.get_data(picks=range(k), start=0, stop=n)
-        r = np.nan_to_num([np.corrcoef(a[i], b[i])[0, 1] for i in range(k)])
-        if r.min() < 0.99:
-            problems.append(f"waveform correlation with source is {r.min():.4f} "
-                            f"(scrambled samples, wrong channel order, or wrong parse)")
+
+        # A disconnected electrode or an idle trigger line is constant, and
+        # correlation with a constant is undefined. Scoring those channels 0
+        # would fail every recording that has one, which is most of them.
+        live = [i for i in range(k) if a[i].std() > 0 and b[i].std() > 0]
+        if live:
+            r = np.array([np.corrcoef(a[i], b[i])[0, 1] for i in live])
+            if r.min() < 0.99:
+                problems.append(f"waveform correlation with source is {r.min():.4f} "
+                                f"(scrambled samples, wrong channel order, or wrong parse)")
+
+            # Correlation is blind to gain and offset: data written 10^6 times
+            # too large still correlates at 1.0. Compare amplitude separately,
+            # because a microvolt/volt mix-up is exactly the error the .fif
+            # bridge is warned about.
+            ratio = np.array([b[i].std() / a[i].std() for i in live])
+            if ratio.min() < 0.99 or ratio.max() > 1.01:
+                problems.append(f"amplitude changed by a factor of "
+                                f"{ratio.min():.4g} to {ratio.max():.4g} (unit scaling)")
+
+            # Correlation is blind to a shift as well as a gain. Measure the
+            # shift against the signal's own scale; EEG means sit near zero, so
+            # a plain ratio would be meaningless.
+            shift = np.array([abs(b[i].mean() - a[i].mean()) / a[i].std() for i in live])
+            if shift.max() > 0.01:
+                problems.append(f"baseline shifted by {shift.max():.3g} standard "
+                                f"deviations (DC offset)")
 
     if problems:
         raise SystemExit("error: the written file does not match the source:\n  " +
