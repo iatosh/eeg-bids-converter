@@ -14,7 +14,7 @@ Converts raw EEG datasets into spec-valid [BIDS](https://bids.neuroimaging.io/) 
 
 ## Requirements
 
-- **Recommended:** [uv](https://docs.astral.sh/uv/) — each script carries its dependencies as [PEP 723](https://peps.python.org/pep-0723/) metadata; `uv run` builds a throwaway environment on first use
+- **Recommended:** [uv](https://docs.astral.sh/uv/). Each script carries its dependencies as [PEP 723](https://peps.python.org/pep-0723/) metadata, so `uv run` handles installation automatically.
 - **Alternative:** Python 3.10+ with manual install:
 
   ```bash
@@ -24,15 +24,15 @@ Converts raw EEG datasets into spec-valid [BIDS](https://bids.neuroimaging.io/) 
 
 ## Installation
 
-- **Clone:**
+- **Download from release:** Download `eeg-bids-converter.zip` from [Releases](https://github.com/iatosh/eeg-bids-converter/releases), extract, and place in your skills directory.
+
+- **Clone this repo:**
 
   ```bash
   git clone https://github.com/iatosh/eeg-bids-converter.git
   ```
 
   Place the folder in your agent's skills directory.
-
-- **.skill Download:** Download `eeg-bids-converter.skill` from [Releases](https://github.com/iatosh/eeg-bids-converter/releases), extract, and place in your skills directory.
 
 ## Usage
 
