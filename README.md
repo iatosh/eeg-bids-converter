@@ -1,16 +1,16 @@
 # BIDS Converter for EEG
 
+Converts raw EEG datasets into spec-valid [BIDS](https://bids.neuroimaging.io/) datasets. Supports EDF, BrainVision, EEGLAB `.set`, Biosemi BDF, GDF, CNT, Curry `.cdt`, MATLAB `.mat`, and any format MNE can read.
+
 <!-- BIDS logo: https://bids.neuroimaging.io/ -->
 <p align="center">
   <a href="https://bids.neuroimaging.io/">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="assets/BIDS_Logo_light.png">
-      <img src="assets/BIDS_Logo.png" alt="Brain Imaging Data Structure (BIDS): https://bids.neuroimaging.io/" width="75%">
+      <img src="assets/BIDS_Logo.png" alt="Brain Imaging Data Structure (BIDS): https://bids.neuroimaging.io/" width="65%">
     </picture>
   </a>
 </p>
-
-Converts raw EEG datasets into spec-valid [BIDS](https://bids.neuroimaging.io/) datasets. Supports EDF, BrainVision, EEGLAB `.set`, Biosemi BDF, GDF, CNT, Curry `.cdt`, MATLAB `.mat`, and any format MNE can read.
 
 ## Requirements
 
@@ -33,6 +33,10 @@ Converts raw EEG datasets into spec-valid [BIDS](https://bids.neuroimaging.io/) 
   Place the folder in your agent's skills directory.
 
 - **.skill Download:** Download `eeg-bids-converter.skill` from [Releases](https://github.com/iatosh/eeg-bids-converter/releases), extract, and place in your skills directory.
+
+## Usage
+
+Invoke via `/eeg-bids-converter`.
 
 ## How It Works
 
@@ -67,4 +71,8 @@ Converts raw EEG datasets into spec-valid [BIDS](https://bids.neuroimaging.io/) 
 
 ## License
 
-MIT. See [LICENSE](LICENSE). BIDS logo is (c) BIDS community: <https://bids.neuroimaging.io/>.
+MIT. See [LICENSE](LICENSE).
+
+BIDS logo is (c) BIDS community: <https://bids.neuroimaging.io/>.
+
+
