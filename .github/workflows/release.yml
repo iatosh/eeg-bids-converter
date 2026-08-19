@@ -1,0 +1,29 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build .skill package
+        run: |
+          mkdir -p eeg-bids-converter
+          cp SKILL.md eeg-bids-converter/
+          cp -r references eeg-bids-converter/
+          rsync -r --exclude '__pycache__' scripts/ eeg-bids-converter/scripts/
+          (cd eeg-bids-converter && zip -r ../eeg-bids-converter.skill .)
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: '${{ github.ref_name }}'
+          generate_release_notes: true
+          files: eeg-bids-converter.skill
