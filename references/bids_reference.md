@@ -43,7 +43,7 @@ Rules:
 
 **`dataset_description.json`** (root, REQUIRED)
 - REQUIRED: `Name`, `BIDSVersion`
-- RECOMMENDED: `DatasetType` (raw/derivative/study, default raw), `License`, `Authors`, `GeneratedBy`, `SourceDatasets`, `HEDVersion`
+- RECOMMENDED: `DatasetType` (raw/derivative/study, default raw), `License`, `Authors`, `GeneratedBy`, `SourceDatasets`, `HEDVersion` (only if some `*_events.json` in the dataset carries a `HED` field — this skill doesn't generate HED tags, so leave it out unless the source data already has them)
 - OPTIONAL: `DatasetLinks`, `Keywords`, `Acknowledgements`, `HowToAcknowledge`, `Funding`, `EthicsApprovals`, `ReferencesAndLinks`, `DatasetDOI`
 - Written by `scripts/write_bids_metadata.py` via `mne_bids.make_dataset_description()`.
 
