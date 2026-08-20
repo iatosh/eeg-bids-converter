@@ -1,4 +1,4 @@
-# BIDS Converter for EEG
+# BIDS Converter Skill for EEG
 
 Converts raw EEG datasets into spec-valid [BIDS](https://bids.neuroimaging.io/) datasets. Supports EDF, BrainVision, EEGLAB `.set`, Biosemi BDF, GDF, CNT, Curry `.cdt`, MATLAB `.mat`, and any format MNE can read.
 
