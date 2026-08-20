@@ -24,19 +24,17 @@ Converts raw EEG datasets into spec-valid [BIDS](https://bids.neuroimaging.io/) 
 
 ## Installation
 
-- **Download from release:** Download `eeg-bids-converter.zip` from [Releases](https://github.com/iatosh/eeg-bids-converter/releases), extract, and place in your skills directory.
+Download `eeg-bids-converter.zip` from [Releases](https://github.com/iatosh/eeg-bids-converter/releases) and extract, or clone this repo:
 
-- **Clone this repo:**
+```bash
+git clone https://github.com/iatosh/eeg-bids-converter.git
+```
 
-  ```bash
-  git clone https://github.com/iatosh/eeg-bids-converter.git
-  ```
-
-  Place the folder in your agent's skills directory.
+Then place the folder in your agent's skills directory.
 
 ## Usage
 
-Invoke the `eeg-bids-converter` skill in your agent.
+Invoke `eeg-bids-converter` skill in your agent.
 
 ## How It Works
 
