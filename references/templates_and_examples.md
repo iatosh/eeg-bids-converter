@@ -1,30 +1,21 @@
 # Templates and worked example
 
+Two dirs, same layout, different jobs.
 
-Two directories, same layout, different jobs.
-
-**`templates/`** is what you copy. Every value is a placeholder stating the
-requirement level, the type, and what the field is for:
+**`templates/`** is what copy. Every value placeholder stating requirement level, type, what field for:
 
 ```json
 "PowerLineFrequency": "<REQUIRED | number | 50 or 60, follows the recording country>",
 "RecordingDuration": "<RECOMMENDED | number | seconds. A number, not a quoted string>",
 ```
 
-The directory names carry the layout too: `sub-<label>/eeg/`,
-`sub-<label>_task-<label>_eeg.json`. Copy the tree, rename the entities,
-replace the placeholders.
+Dir names carry layout too: `sub-<label>/eeg/`, `sub-<label>_task-<label>_eeg.json`. Copy tree, rename entities, replace placeholders.
 
-**`examples/`** is what a filled-in result looks like. It is a real one-subject
-dataset that `validate_bids.py` reports 0 errors on. Read it when you want to
-see a finished file rather than a form.
+**`examples/`** is what filled-in result looks like. Real one-subject dataset `validate_bids.py` reports 0 errors on. Read when want see finished file, not form.
 
-`validate_bids.py` also uses the key names in both directories to catch
-misspelled sidecar keys, which the official validator ignores. So a key
-renamed here changes what the checker accepts.
+`validate_bids.py` also uses key names in both dirs to catch misspelled sidecar keys — official validator ignores this. Key renamed here changes what checker accepts.
 
-The example's signal is 10 s of synthetic noise. Everything else is what a real
-conversion should look like.
+Example's signal: 10 s synthetic noise. Everything else what real conversion should look like.
 
 ```
 examples/
@@ -43,49 +34,23 @@ examples/
 
 ## What each file is showing you
 
-**`dataset_description.json`** carries the provenance Step 3 tells you to ask
-for: `License`, `Authors`, `Funding`, `EthicsApprovals`, `ReferencesAndLinks`,
-`DatasetDOI`. `write_bids_metadata.py` writes all of these; `--doi` and
-`--references-and-links` are the flags people miss.
+**`dataset_description.json`** carries provenance Step 3 says ask for: `License`, `Authors`, `Funding`, `EthicsApprovals`, `ReferencesAndLinks`, `DatasetDOI`. `write_bids_metadata.py` writes all these; `--doi` and `--references-and-links` flags people miss.
 
-**`participants.json`** maps each column to **one object**, not to an array,
-and spells the key `Levels` with a capital L. Both mistakes are common and the
-validator does not reliably catch either. Every column here exists in
-`participants.tsv`, and no column exists there without an entry here.
+**`participants.json`** maps each column to **one object**, not array, spells key `Levels` with capital L. Both mistakes common, validator doesn't reliably catch either. Every column here exists in `participants.tsv`, none exists there without entry here.
 
-**`sub-01_task-gonogo_eeg.json`** shows the types that get written wrong:
-`RecordingDuration` is a number, not `"10.0"`. `SamplingFrequency` and
-`PowerLineFrequency` are numbers. The misc count is `MiscChannelCount`;
-`MISCChannelCount` is a deprecated alias that some documentation tables still
-show. `HardwareFilters` is an object; `SoftwareFilters` is
-`"n/a"` here because none were applied, which is the honest value, not a
-placeholder.
+**`sub-01_task-gonogo_eeg.json`** shows types written wrong: `RecordingDuration` number, not `"10.0"`. `SamplingFrequency` and `PowerLineFrequency` numbers. Misc count is `MiscChannelCount`; `MISCChannelCount` deprecated alias some docs tables still show. `HardwareFilters` object; `SoftwareFilters` is `"n/a"` here since none applied — honest value, not placeholder.
 
-`EEGGround` is `"n/a"` because the source documentation never stated it. That
-is the correct entry. Filling in a plausible ground location would be the
-fabrication the skill's second rule is about.
+`EEGGround` is `"n/a"` since source docs never stated it. Correct entry. Filling plausible ground location = fabrication skill's second rule warns about.
 
-**`channels.tsv`** has `name`, `type`, `units` first and in that order. `type`
-is uppercase and from the BIDS vocabulary. `status` marks the one bad channel,
-with `status_description` saying why. The `EOG` type matches
-`EOGChannelCount: 1` in the sidecar; declaring `VEOG` there while the sidecar
-counts an `EOG` raises a validator warning.
+**`channels.tsv`** has `name`, `type`, `units` first, that order. `type` uppercase, from BIDS vocabulary. `status` marks one bad channel, `status_description` says why. `EOG` type matches `EOGChannelCount: 1` in sidecar; declaring `VEOG` there while sidecar counts `EOG` raises validator warning.
 
-**`events.tsv` and `events.json`** keep both a readable `trial_type` and the
-raw `value` the amplifier recorded, and `events.json` documents both with
-`Levels`. `response_time` is `"n/a"` on No-Go trials, spelled out, never left
-blank. When trigger codes are undocumented, keep `value` and say in
-`Description` that the source does not explain them, rather than inventing
-`Levels`.
+**`events.tsv` and `events.json`** keep both readable `trial_type` and raw `value` amplifier recorded, `events.json` documents both with `Levels`. `response_time` is `"n/a"` on No-Go trials, spelled out, never blank. When trigger codes undocumented, keep `value`, say in `Description` source doesn't explain them — don't invent `Levels`.
 
-**`README`** covers what the sidecars cannot: what was recorded, the paradigm,
-known data-quality issues, the source URL, and what was inferred rather than
-read.
+**`README`** covers what sidecars can't: what recorded, paradigm, known data-quality issues, source URL, what inferred vs read.
 
 ## Which of these files you actually need
 
-`templates/` is a menu, not a checklist. Copying all of it produces a dataset
-full of forms nobody filled. Only four files are REQUIRED in every EEG dataset:
+`templates/` menu, not checklist. Copying all of it = dataset full of forms nobody filled. Only four files REQUIRED in every EEG dataset:
 
 | File | Level | Needed |
 |---|---|---|
@@ -95,53 +60,30 @@ full of forms nobody filled. Only four files are REQUIRED in every EEG dataset:
 | `sub-<label>/eeg/..._eeg.json` | recording | **REQUIRED** |
 | `participants.tsv` + `participants.json` | root | RECOMMENDED, expected in practice |
 | `..._channels.tsv` | recording | RECOMMENDED, written by mne-bids |
-| `..._events.tsv` + `..._events.json` | recording | only if the recording has events |
+| `..._events.tsv` + `..._events.json` | recording | only if recording has events |
 | `CHANGES` | root | OPTIONAL |
-| `LICENSE` | root | OPTIONAL, and only if you know the licence |
+| `LICENSE` | root | OPTIONAL, only if know licence |
 | `task-<label>_eeg.json` | root | OPTIONAL, see below |
-| `..._electrodes.tsv` + `..._coordsystem.json` | recording | OPTIONAL, and wrong unless positions were measured |
+| `..._electrodes.tsv` + `..._coordsystem.json` | recording | OPTIONAL, wrong unless positions measured |
 
-An absent optional file is a statement that the dataset does not have that
-information. A present one filled with placeholders or plausible guesses is a
-false statement. The first is always better.
-
+Absent optional file = statement dataset lacks that info. Present one filled with placeholders/guesses = false statement. First always better.
 
 ## The root-level `task-<label>_eeg.json`
 
-Optional, and the one file mne-bids will not write for you. It sits at the
-dataset root and applies to every recording whose filename carries that
-`task-<label>`, in every subject and session, because it names no entity the
-data files lack. That is the inheritance principle: keys load from the top of
-the tree downwards, and a key repeated in a recording's own `_eeg.json`
-overrides it for that recording only.
+Optional, one file mne-bids won't write for you. Sits at dataset root, applies to every recording whose filename carries that `task-<label>`, every subject/session, since names no entity data files lack. That's inheritance principle: keys load top of tree downward, key repeated in recording's own `_eeg.json` overrides for that recording only.
 
-Use it for what is identical across the dataset: the hardware, the reference,
-the line frequency, the task description. The per-recording sidecars then carry
-only what genuinely varies. On a 100-subject dataset that is the difference
-between one edit and a hundred.
+Use for what's identical across dataset: hardware, reference, line frequency, task description. Per-recording sidecars then carry only what genuinely varies. On 100-subject dataset that's diff between one edit and hundred.
 
-`convert_recording.py` writes per-recording sidecars. If you want the
-inheritance, write this file by hand and delete the duplicated keys from the
-per-recording ones. Leaving it out is equally valid; nothing breaks.
+`convert_recording.py` writes per-recording sidecars. Want inheritance? Write this file by hand, delete duplicated keys from per-recording ones. Leaving out equally valid; nothing breaks.
 
 ## `electrodes.tsv` and `coordsystem.json`
 
-Both files are OPTIONAL, and writing them is wrong unless the positions were
-really measured on these participants. Expanding a template montage into
-coordinates produces a fabricated `electrodes.tsv`, which is a spec violation;
-an absent one is fine. `references/electrodes.md` covers the decision. Read it
-before filling these in.
+Both files OPTIONAL, writing them wrong unless positions really measured on these participants. Expanding template montage into coordinates = fabricated `electrodes.tsv`, spec violation; absent one fine. `references/electrodes.md` covers decision. Read before filling these in.
 
-If you do write them, note they carry no `task-` entity: electrode positions
-belong to the session, not to one task, and the spec says not to duplicate them
-per data file. If `electrodes.tsv` exists, `coordsystem.json` MUST exist too.
+If write them, note carry no `task-` entity: electrode positions belong to session, not one task, spec says don't duplicate per data file. If `electrodes.tsv` exists, `coordsystem.json` MUST exist too.
 
 ## Files not templated here
 
-`LICENSE` holds the full text of the licence named in
-`dataset_description.json`. Optional, and only worth adding once someone has
-told you which licence applies.
+`LICENSE` holds full text of licence named in `dataset_description.json`. Optional, only worth adding once someone told you which licence applies.
 
-`_scans.tsv` is written by mne-bids. `sessions.tsv`, `_channels.json`,
-`_physio.tsv.gz`, `_stim.tsv.gz` and `_photo.*` are valid BIDS but rare in a
-conversion; see `bids_reference.md` or the spec if a dataset needs one.
+`_scans.tsv` written by mne-bids. `sessions.tsv`, `_channels.json`, `_physio.tsv.gz`, `_stim.tsv.gz` and `_photo.*` valid BIDS but rare in conversion; see `bids_reference.md` or spec if dataset needs one.

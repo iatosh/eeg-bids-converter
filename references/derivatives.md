@@ -1,17 +1,10 @@
-# When the source ships preprocessed copies
+# When source ships preprocessed copies
 
-Read this when the dataset contains an already-filtered, re-referenced, ICA-
-cleaned or otherwise processed version of the recordings alongside the raw
-ones.
+Read when dataset contain already-filtered, re-referenced, ICA-cleaned, or otherwise processed version of recordings alongside raw ones.
 
-Such a copy must not go into the raw `sub-*/` tree. BIDS raw means
-minimally processed. It also must not be silently dropped. Either it goes
-into a derivatives dataset, or you leave it out and say so in the Step 7
-report. Dropping it without mention is the one option that isn't acceptable.
+Such copy must not go into raw `sub-*/` tree. BIDS raw means minimally processed. Also must not silently drop. Either goes into derivatives dataset, or leave out and say so in Step 7 report. Dropping without mention = only unacceptable option.
 
-Deciding which is a Step 3 question for the user: keeping a derivatives tree
-roughly doubles the conversion work, and for some datasets the processed
-copy is the only part anyone uses.
+Deciding which is Step 3 question for user: keeping derivatives tree roughly doubles conversion work, and for some datasets processed copy only part anyone uses.
 
 ## Writing it
 
@@ -27,12 +20,9 @@ uv run scripts/write_bids_metadata.py \
     --generated-by-description "<what the source says was done>"
 ```
 
-`--desc` is only ever for a derivatives tree. Setting it on a raw recording
-labels a file as processed when it isn't.
+`--desc` only ever for derivatives tree. Setting on raw recording labels file as processed when it isn't.
 
-Record the actual filter settings in `SoftwareFilters` with
-`patch_sidecar.py`, using the source's own numbers. If the source states
-exactly what was done, `"n/a"` there is a loss, not honesty.
+Record actual filter settings in `SoftwareFilters` with `patch_sidecar.py`, using source's own numbers. If source states exactly what was done, `"n/a"` there = loss, not honesty.
 
 ## Validate it
 
@@ -40,27 +30,26 @@ exactly what was done, `"n/a"` there is a loss, not honesty.
 uv run scripts/validate_bids.py <bids_root> --recursive
 ```
 
-**The validator skips `derivatives/` content by default.** Without
-`--recursive` it passes without ever having checked the derivatives tree.
+**Validator skips `derivatives/` content by default.** Without `--recursive` it passes without ever checking derivatives tree.
 
 ## Spec requirements
 
 - Directory template:
   `derivatives/<pipeline-name>/sub-<label>/[ses-<label>/]eeg/<source-entities>[_desc-<label>]_<suffix>.<extension>`
-  Same entities as the raw file it derives from, plus `desc-<label>`
-  (RECOMMENDED) to distinguish it from the raw version.
-- A `dataset_description.json` **MUST** exist at the top of the derivatives
-  folder: `derivatives/<pipeline-name>/dataset_description.json`, not the
+  Same entities as raw file it derives from, plus `desc-<label>`
+  (RECOMMENDED) to distinguish from raw version.
+- `dataset_description.json` **MUST** exist at top of derivatives
+  folder: `derivatives/<pipeline-name>/dataset_description.json`, not
   raw dataset's.
-- Unlike raw datasets (where `GeneratedBy` is RECOMMENDED), a derivatives
+- Unlike raw datasets (where `GeneratedBy` RECOMMENDED), derivatives
   `dataset_description.json` **MUST include `GeneratedBy`**, with `Name`
   REQUIRED and `Version`/`Description`/`CodeURL`/`Container`
   RECOMMENDED/OPTIONAL.
-- If the derivatives folder is nested inside the raw dataset
-  (`<raw_root>/derivatives/<pipeline-name>/`, the normal case), the first
-  `GeneratedBy` object's `Name` MUST be a substring of `<pipeline-name>`.
+- If derivatives folder nested inside raw dataset
+  (`<raw_root>/derivatives/<pipeline-name>/`, normal case), first
+  `GeneratedBy` object's `Name` MUST be substring of `<pipeline-name>`.
 - `DatasetType` should be `"derivative"`.
-- A derivatives sub-dataset does not need its own `participants.tsv` /
-  `README`. It inherits those from the parent raw dataset.
+- Derivatives sub-dataset doesn't need own `participants.tsv` /
+  `README`. Inherits from parent raw dataset.
   `write_bids_metadata.py --dataset-type derivative` skips writing them and
-  removes the placeholders `write_raw_bids()` auto-bootstraps there.
+  removes placeholders `write_raw_bids()` auto-bootstraps there.
