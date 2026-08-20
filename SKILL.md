@@ -1,6 +1,6 @@
 ---
 name: eeg-bids-converter
-description: Converts arbitrary raw/messy EEG datasets (EDF, BrainVision, EEGLAB .set, Biosemi BDF, GDF, CNT, Curry .cdt, custom MATLAB .mat structs, or anything else mne can read or be coerced into) into a spec-valid BIDS (Brain Imaging Data Structure) dataset using mne/mne-bids, executed via `uv run` with no preinstalled environment required. Walks through directory scanning, subject/session/task/run entity parsing, per-recording conversion with correct sidecar metadata, participants.tsv/dataset_description.json generation, and BIDS-validator validation. Use this skill whenever the user wants to convert, BIDSify, restructure, or organize EEG data into BIDS format, prepare a raw EEG dataset for OpenNeuro/BIDS-Apps/sharing/publication, fix BIDS-validator errors on an EEG dataset, or mentions mne-bids, EEG-BIDS, or a folder of raw EEG recordings (EDF/GDF/BrainVision/etc.) that needs standardizing, even if they don't use the exact words "BIDS" or "convert".
+description: Converts arbitrary raw/messy EEG datasets (EDF, BrainVision, EEGLAB .set, Biosemi BDF, GDF, CNT, Curry .cdt, custom MATLAB .mat structs, or anything else mne can read) into a spec-valid BIDS dataset using mne/mne-bids, via `uv run` with no preinstalled environment required. Use whenever the user wants to convert, BIDSify, restructure, or organize EEG data into BIDS, prepare EEG data for OpenNeuro/sharing, fix BIDS-validator errors, or mentions mne-bids/EEG-BIDS, even without the words "BIDS" or "convert".
 ---
 # BIDS converter for EEG
 
