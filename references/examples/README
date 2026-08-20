@@ -1,20 +1,56 @@
 # Visual Go/No-Go EEG
 
-Worked example accompanying the eeg-bids-converter skill. One participant, one
-run, shortened to keep the example small. Not real data.
+Worked example accompanying the eeg-bids-converter skill. One participant,
+one run, shortened to keep the example small. Not real data.
 
-## What was recorded
+## Overview
 
-64-channel EEG plus two EOG channels, sampled at 500 Hz, during a visual
-Go/No-Go task. Participants pressed the space bar for Go stimuli and withheld
-the response for No-Go stimuli.
+Demonstrates a spec-valid single-subject BIDS-EEG dataset. 64-channel EEG
+plus 1 EOG channel, sampled at 500 Hz, one participant, one run, ~10 s
+duration (shortened from the source recording for this example). Task:
+visual Go/No-Go.
 
-## Known issues
+### Experimental design
+
+Independent variable: stimulus type (Go = blue square, No-Go = red
+square). Dependent variables: button-press response and response time. No
+control variables varied across trials.
+
+## Dataset contents and structure
+
+Standard BIDS layout only — no `derivatives/`, no `sourcedata/`, no
+non-standard files.
+
+## Methods
+
+### Participants and recruitment
+
+One participant (`sub-01`), no exclusions. See `participants.tsv` for
+demographics, `participants.json` for column definitions.
+
+### Acquisition
+
+TMSi Refa 72-channel amplifier, linked-earlobes reference. Full parameters
+in `sub-01_task-gonogo_eeg.json`.
+
+### Task and paradigm
+
+Participants pressed the space bar for Go stimuli (blue square) and
+withheld the response for No-Go stimuli (red square). Single block, no
+counter-balancing beyond stimulus order. See
+`sub-01_task-gonogo_events.tsv` for trial-by-trial timing.
+
+## Known issues, quality, and missing data
 
 Channel T7 was noisy throughout and is marked `bad` in `channels.tsv`.
+`EEGGround` was not stated in the source documentation and is recorded as
+`"n/a"` rather than guessed.
 
-## Provenance
+## References and citation
 
-Source archive: https://doi.org/10.5281/zenodo.0000000
-Converted with the eeg-bids-converter skill. `EEGGround` was not stated in the
-source documentation and is recorded as "n/a" rather than guessed.
+Source archive: https://doi.org/10.5281/zenodo.0000000. Converted with the
+eeg-bids-converter skill.
+
+## Contact
+
+Data curator: Jane Doe, jane.doe@example.edu

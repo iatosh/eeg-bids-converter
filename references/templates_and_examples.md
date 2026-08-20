@@ -46,7 +46,12 @@ examples/
 
 **`events.tsv` and `events.json`** keep both readable `trial_type` and raw `value` amplifier recorded, `events.json` documents both with `Levels`. `response_time` is `"n/a"` on No-Go trials, spelled out, never blank. When trigger codes undocumented, keep `value`, say in `Description` source doesn't explain them — don't invent `Levels`.
 
-**`README`** covers what sidecars can't: what recorded, paradigm, known data-quality issues, source URL, what inferred vs read.
+**`README`** covers what sidecars can't: study overview, methods
+(participants/acquisition/task/paradigm), known data-quality issues,
+references, contact. Nine sections, several marked optional — omit a
+section that doesn't apply (e.g. `Experimental design` for resting state)
+rather than filling it with a placeholder. Full section list in
+`templates/README`.
 
 ## Which of these files you actually need
 

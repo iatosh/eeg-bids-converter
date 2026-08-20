@@ -1,15 +1,74 @@
-# <dataset name>
+# <dataset name — same as `Name` in dataset_description.json>
 
-## What was recorded
+<One or two sentences: what was recorded, in whom, why. Readable in 10s.>
 
-<Channel count, sampling rate, task, participant count. One paragraph.>
+## Overview
 
-## Known issues
+<Scientific question/purpose. Then: modality, participant count and any
+groups, sessions/runs, task(s), approximate recording duration, project
+name and years it ran, associated publication if any.>
 
-<Bad channels, truncated runs, subjects excluded and why. "None known" is a
-valid answer. Silence is not.>
+### Experimental design (optional — omit for resting state / no manipulation)
 
-## Provenance
+<Independent (manipulated), dependent (measured), and control (held-fixed)
+variables.>
 
-<Source archive URL or DOI. What was inferred rather than read, and which
-fields are "n/a" because neither the docs nor the user could answer.>
+## Dataset contents and structure
+
+<Only what a standard BIDS layout doesn't already say: contents of
+derivatives/ and sourcedata/, extra or non-standard files, any deliberate
+deviation from BIDS.>
+
+## Methods
+
+<Copy or adapt the source paper's Methods section if one exists, trimmed to
+what's relevant to the data as shared.>
+
+### Participants and recruitment
+
+<Recruitment, eligibility, grouping, how many excluded and why. Summarize
+only — per-subject demographics belong in participants.tsv,
+group/diagnosis in its `group` column, not here.>
+
+### Acquisition
+
+<Equipment and environment in a sentence or two. Full machine-readable
+parameters belong in *_eeg.json, not here.>
+
+### Task and paradigm
+
+<What participants did, trial structure, how tasks were ordered within a
+session. TaskName/TaskDescription live in *_eeg.json, events in
+*_events.tsv — summarize, don't duplicate verbatim.>
+
+### Stimuli (optional)
+
+<What was presented, and where stimulus files live if included.>
+
+### Additional data acquired (optional)
+
+<Non-EEG data collected alongside — questionnaires, surveys, clinical
+measures. Note availability and location.>
+
+## Known issues, quality, and missing data
+
+<Highest-value section. Missing/partial runs, excluded participants, bad
+channels, timing/trigger problems, equipment or protocol changes
+mid-study, anything that looks normal but isn't. "None known." is a valid
+answer. Silence is not.>
+
+## How to use these data (optional)
+
+<Preprocessing already applied and where it lives, recommended
+reference/montage, software and version used for conversion.>
+
+## References and citation
+
+<One-line "how to cite" plus the key paper(s). `DatasetDOI` and
+`ReferencesAndLinks` in dataset_description.json carry the machine-readable
+form — this is the human-readable pointer to them.>
+
+## Contact
+
+<Person or team who can answer questions. Role + email is more
+future-proof than a name alone.>

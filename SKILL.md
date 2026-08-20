@@ -158,6 +158,8 @@ uv run scripts/write_bids_metadata.py \
 
 `participants.json` generated to describe exactly columns that exist. Dataset has no demographics? Single `participant_id` entry saying so. Don't reach for age/sex/handedness columns source never provided. Supply `--column-descriptions` for any non-standard column you mapped, using source's own definitions.
 
+`--readme-text` structure: `references/templates/README`. Nine sections, several optional — omit what doesn't apply, don't pad with placeholders.
+
 ```bash
 uv run scripts/validate_bids.py <bids_root> [--recursive]
 ```
