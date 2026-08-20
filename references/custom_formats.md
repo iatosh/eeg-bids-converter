@@ -1,22 +1,11 @@
 # When mne cannot read the source
 
-**Read this only after `mne.io.read_raw` has actually failed on the file.**
-`convert_recording.py` delegates reading to mne, which ships 30 readers and
-covers far more than the obvious four: Curry `.cdt`, EGI `.mff`, Persyst
-`.lay`, Nihon Kohden `.EEG`, ANT `.cnt` and others all read natively. Assuming
-a format is unsupported because it looks proprietary is how datasets end up
-hand-parsed for no reason.
+**Read only after `mne.io.read_raw` actually failed on file.**
+`convert_recording.py` delegates reading to mne, ships 30 readers, covers far more than obvious four: Curry `.cdt`, EGI `.mff`, Persyst `.lay`, Nihon Kohden `.EEG`, ANT `.cnt` and others read natively. Assuming format unsupported cuz looks proprietary — that how datasets end up hand-parsed for no reason.
 
-That mistake is expensive. A hand-written parser that guesses the sample
-layout wrong yields a file with the right channel names, the right sample
-count, the right sampling rate, and a waveform that correlates with the real
-signal at r = 0.000, and the BIDS validator reports zero errors. This is not
-hypothetical; it happened to a 133-channel Curry recording that
-`mne.io.read_raw_curry` reads in one line.
+Mistake expensive. Hand-written parser guessing sample layout wrong yields file with right channel names, right sample count, right sampling rate, and waveform correlating with real signal at r = 0.000 — BIDS validator reports zero errors. Not hypothetical; happened to 133-channel Curry recording that `mne.io.read_raw_curry` reads in one line.
 
-So: try `mne.io.read_raw(path)` first. If it raises about a missing package
-(`curryreader`, `defusedxml`, `eeglabio`), add the package, don't write a
-parser.
+So: try `mne.io.read_raw(path)` first. If raises about missing package (`curryreader`, `defusedxml`, `eeglabio`), add package, don't write parser.
 
 ## Contents
 - [The universal bridge](#the-universal-bridge)
@@ -27,8 +16,7 @@ parser.
 
 ## The universal bridge
 
-Don't write a second conversion path. Build an `mne.io.RawArray`, save it as
-`.fif`, and feed that to the same script every other format goes through:
+Don't write second conversion path. Build `mne.io.RawArray`, save as `.fif`, feed to same script every other format goes through:
 
 ```python
 import mne, numpy as np
@@ -52,34 +40,20 @@ assert 1e-6 < np.abs(X).max() < 1e-2, f"peak {np.abs(X).max():.2e} V: unit scali
 raw.save("/tmp/sub01_raw.fif", overwrite=True)
 ```
 
-The three assertions are explained in
-[Checking that you parsed it correctly](#checking-that-you-parsed-it-correctly),
-with the numbers measured on a real corruption. Read that section if one of
-them fires.
+Three assertions explained in [Checking that you parsed it correctly](#checking-that-you-parsed-it-correctly), numbers measured on real corruption. Read that section if one fires.
 ```bash
 uv run scripts/convert_recording.py --input /tmp/sub01_raw.fif --format fif \
     --bids-root /out/bids --subject 01 --task rest --line-freq 50 --annotations-only
 ```
-Delete the temp `.fif` afterward; it's scratch, not output.
+Delete temp `.fif` after; scratch, not output.
 
-**Units.** MNE/BIDS expect volts. Most `.mat` exports store microvolts and
-need `* 1e-6`, but verify per dataset rather than applying it reflexively.
-some store volts already, and some record the unit in a separate metadata
-column. Getting this wrong scales every downstream analysis by 10^6 and
-nothing in the pipeline will catch it.
+**Units.** MNE/BIDS expect volts. Most `.mat` exports store microvolts, need `* 1e-6` — but verify per dataset, don't apply reflexively. Some store volts already, some record unit in separate metadata column. Get this wrong, scales every downstream analysis by 10^6, nothing in pipeline catches it.
 
-**Shape.** `RawArray` wants `(n_channels, n_samples)`. Sources disagree:
-scipy `.mat` files are often `(n_samples, n_channels)` and need `.T`, HDF5
-v7.3 files come back transposed relative to scipy, and raw binary blobs may
-be sample-interleaved rather than channel-blocked. Guessing wrong here is
-exactly the failure described at the top of this file.
+**Shape.** `RawArray` wants `(n_channels, n_samples)`. Sources disagree: scipy `.mat` files often `(n_samples, n_channels)`, need `.T`; HDF5 v7.3 files come back transposed relative to scipy; raw binary blobs may be sample-interleaved rather than channel-blocked. Guess wrong here, exactly the failure described at top of file.
 
 ## Checking that you parsed it correctly
 
-`convert_recording.py` verifies the file it writes against the Raw you hand
-it, so a bad parse survives that check. Both sides are equally wrong.
-Verify the `RawArray` itself, before writing anything. Two cheap statistics
-separate a good parse from a scrambled one:
+`convert_recording.py` verifies file it writes against Raw you hand it — bad parse survives that check. Both sides equally wrong. Verify `RawArray` itself, before writing anything. Two cheap statistics separate good parse from scrambled one:
 
 ```python
 import numpy as np
@@ -101,25 +75,20 @@ s = X.std(axis=1); cv = s.std() / s.mean()
 print(np.abs(X).max())
 ```
 
-Measured on the Curry file mentioned above, correct parse vs transposed parse:
+Measured on Curry file mentioned above, correct parse vs transposed parse:
 
 | statistic | correct | scrambled |
 |---|---|---|
 | mean lag-1 autocorrelation | **+0.9967** | **-0.2272** |
 | per-channel std, coeff. of variation | **3.665** | **0.031** |
 
-Lag-1 is the sharper of the two: a uniform variance spread can also come from
-genuinely stationary noise, but autocorrelation only collapses when the time
-axis itself is wrong. If either looks like the right-hand column, re-read the
-file's own header for its sample layout instead of adjusting the numbers.
+Lag-1 sharper of two: uniform variance spread can also come from genuinely stationary noise, but autocorrelation only collapses when time axis itself wrong. If either looks like right-hand column, re-read file's own header for sample layout instead of adjusting numbers.
 
-Where a reference reader exists at all, even a slow or partial one, read
-the same file both ways and correlate. That is the only check that catches a
-parse which is self-consistently wrong.
+Where reference reader exists at all, even slow or partial one, read same file both ways and correlate. Only check that catches parse self-consistently wrong.
 
 ## Exploring an unknown .mat file
 
-Look before writing a loader. Field names differ in every dataset.
+Look before writing loader. Field names differ every dataset.
 
 ```python
 # /// script
@@ -161,23 +130,15 @@ with h5py.File(path, "r") as f:
     data = f["EEG/data"][:].astype(float).T * 1e-6
     sfreq = float(f["EEG/srate"][()].flatten()[0])
 ```
-Cell arrays (e.g. channel-name lists) are arrays of HDF5 object references;
-dereference each with `f[ref]` before decoding.
+Cell arrays (e.g. channel-name lists) are arrays of HDF5 object references; dereference each with `f[ref]` before decoding.
 
-If the `.mat` also carries digitized electrode coordinates, see
-`references/electrodes.md`. Real positions are worth keeping and are
-routinely dropped by accident.
+If `.mat` also carries digitized electrode coordinates, see `references/electrodes.md`. Real positions worth keeping, routinely dropped by accident.
 
 ## One source file, several recordings
 
-A `.mat` often holds several separate recordings in one file: one field per
-task, or a cell array of runs. `inspect_dataset.py --out` maps one path to
-one set of entities and cannot express this, so the split happens in your
-loader, not in the regex.
+`.mat` often holds several separate recordings in one file: one field per task, or cell array of runs. `inspect_dataset.py --out` maps one path to one set of entities, cannot express this — split happens in your loader, not in the regex.
 
-Build one `RawArray` per recording, save one `.fif` each, and call
-`convert_recording.py` once per file with the entity that actually
-distinguishes them:
+Build one `RawArray` per recording, save one `.fif` each, call `convert_recording.py` once per file with entity that actually distinguishes them:
 
 ```python
 for task, field in {"rest": "rest", "imageryleft": "imagery_left",
@@ -187,14 +148,10 @@ for task, field in {"rest": "rest", "imageryleft": "imagery_left",
     raw.save(f"/tmp/sub01_{task}_raw.fif", overwrite=True)
 ```
 
-Choose the entity deliberately, and say which you chose in the Step 7 report:
+Choose entity deliberately, say which chosen in Step 7 report:
 
 - **different task** -> `--task` (different paradigm: rest vs motor imagery)
 - **same task repeated** -> `--run` (run indices are for repetitions of one task)
 - **same task, different acquisition setup** -> `--acq`
 
-Left-hand and right-hand motor imagery are the awkward case: they are two
-conditions of one paradigm, so `--task imagery` with the side recorded as an
-event/`trial_type` is usually truer than inventing two tasks. If the source
-stores them as separate continuous recordings with no shared timeline, two
-tasks or two runs are both defensible. Pick one, and record why.
+Left-hand and right-hand motor imagery awkward case: two conditions of one paradigm, so `--task imagery` with side recorded as event/`trial_type` usually truer than inventing two tasks. If source stores them as separate continuous recordings with no shared timeline, two tasks or two runs both defensible. Pick one, record why.

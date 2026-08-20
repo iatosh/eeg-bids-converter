@@ -1,12 +1,10 @@
 # BIDS-EEG reference
 
-Condensed from the official BIDS Specification (bids-specification.readthedocs.io,
-stable/v1.11.1) and BIDS Validator docs. A lookup table, not something to read
-start to end. Jump to the section you need.
+Condensed from official BIDS Specification (bids-specification.readthedocs.io,
+stable/v1.11.1) and BIDS Validator docs. Lookup table, not read-start-to-end. Jump to section needed.
 
-Situation-specific guidance lives elsewhere: `events.md`, `electrodes.md`,
-`derivatives.md`, `custom_formats.md`. Finished spec-valid files to copy from:
-`examples/`.
+Situation-specific guidance elsewhere: `events.md`, `electrodes.md`,
+`derivatives.md`, `custom_formats.md`. Finished spec-valid files to copy: `examples/`.
 
 ## Contents
 - [Filenames and entities](#filenames-and-entities)
@@ -30,15 +28,15 @@ sub-<label>/[ses-<label>/]eeg/
 | Subject | `sub-<label>` | REQUIRED |
 | Session | `ses-<label>` | optional |
 | Task | `task-<label>` | REQUIRED |
-| Acquisition | `acq-<label>` | optional (e.g. positions recorded with a different device) |
+| Acquisition | `acq-<label>` | optional (e.g. positions recorded with different device) |
 | Run | `run-<index>` | optional |
 
 Rules:
-- Entities appear in the order above. Each entity at most once per filename.
-- Labels and indices are **alphanumeric only**. No underscores, hyphens, spaces. `scripts/inspect_dataset.py --pattern` sanitizes captured values for you.
-- `TaskName` in the sidecar and the `task-<label>` filename component can differ. The filename label is `TaskName` with all non-alphanumeric characters stripped. `TaskName: "faces n-back"` gives `task-facesnback`.
-- Labels are case-sensitive but must not collide case-insensitively. `sub-s1` and `sub-S1` cannot coexist.
-- `run-<index>` is not zero-padded for you. Pass `--run 01`, not `--run 1`, or `run-1` and `run-10` sort wrongly next to each other.
+- Entities in order above. Each entity max once per filename.
+- Labels/indices alphanumeric only. No underscores, hyphens, spaces. `scripts/inspect_dataset.py --pattern` sanitizes captured values.
+- `TaskName` in sidecar and `task-<label>` filename component can differ. Filename label = `TaskName` with non-alphanumeric chars stripped. `TaskName: "faces n-back"` → `task-facesnback`.
+- Labels case-sensitive but must not collide case-insensitively. `sub-s1` and `sub-S1` can't coexist.
+- `run-<index>` not zero-padded for you. Pass `--run 01`, not `--run 1`, else `run-1`/`run-10` sort wrong next to each other.
 - Sidecars for one recording share its stem: `_eeg.json`, `_events.tsv` + `_events.json`, `_channels.tsv`, optionally `_electrodes.tsv` + `_coordsystem.json`.
 
 ## Top-level dataset files
@@ -53,22 +51,20 @@ Rules:
 - `participant_id` (format `sub-<label>`) REQUIRED, first column, one row per participant.
 - Recommended columns: `age`, `sex`, `handedness`, `species`, `strain`, `strain_rrid`.
 - Privacy: top-code ages, commonly capped at 89.
-- `participants.json` must describe exactly the columns present. Documenting a column the TSV does not have is worse than documenting nothing.
+- `participants.json` must describe exactly columns present. Documenting column TSV lacks worse than documenting nothing.
 
 **`README`** (root, REQUIRED). ASCII/UTF-8, exactly one of `README`, `README.md`,
-`README.rst`, `README.txt`. The spec mandates no structure, only that it
-"SHOULD describe the dataset in more detail" and stay readable unrendered. So
-the useful content is whatever the machine-readable sidecars cannot express:
-what was recorded and why, the paradigm, known data-quality issues, the source
-URL, and anything you inferred rather than read.
+`README.rst`, `README.txt`. Spec mandates no structure, only "SHOULD describe dataset
+in more detail" and stay readable unrendered. Useful content: what machine-readable
+sidecars can't express — what recorded and why, paradigm, known data-quality issues,
+source URL, anything inferred rather than read.
 
 **`CHANGES`** (root, OPTIONAL). Changelog, ASCII/UTF-8.
 
 ## Data dictionaries (any `.json` describing a `.tsv`)
 
-Every column name maps to **one object**, never to an array. Keys are
-PascalCase: `LongName`, `Description`, `Format`, `Levels`, `Units`,
-`Delimiter`, `TermURL`, `HED`, `Minimum`, `Maximum`.
+Every column name maps to **one object**, never array. Keys PascalCase: `LongName`,
+`Description`, `Format`, `Levels`, `Units`, `Delimiter`, `TermURL`, `HED`, `Minimum`, `Maximum`.
 
 ```json
 {
@@ -80,8 +76,8 @@ PascalCase: `LongName`, `Description`, `Format`, `Levels`, `Units`,
 }
 ```
 
-`"age": [{...}]` and `"levels"` lowercase are both wrong and both common. The
-validator does not always object, so check the shape rather than assuming.
+`"age": [{...}]` and `"levels"` lowercase both wrong, both common. Validator doesn't
+always object — check shape, don't assume.
 
 ## `*_eeg.json` sidecar fields
 
@@ -102,29 +98,27 @@ validator does not always object, so check the shape rather than assuming.
 **OPTIONAL**: `ElectricalStimulation` (boolean),
 `ElectricalStimulationParameters` (string).
 
-Types matter. `RecordingDuration` is a number, not `"1834.8"`.
-`ElectricalStimulation` is a boolean, not `"True"`.
+Types matter. `RecordingDuration` number, not `"1834.8"`.
+`ElectricalStimulation` boolean, not `"True"`.
 
-The misc channel count is `MiscChannelCount`. `MISCChannelCount` exists as a
-deprecated alias, and older documentation tables still show it, but the schema
-marks it deprecated and says new datasets SHOULD use `MiscChannelCount`.
+Misc channel count = `MiscChannelCount`. `MISCChannelCount` deprecated alias, still
+shows in older docs tables, but schema marks deprecated — new datasets SHOULD use
+`MiscChannelCount`.
 
-`write_raw_bids()` auto-fills `SamplingFrequency` and the `*ChannelCount`
-fields from `raw.info`, and sometimes infers `EEGPlacementScheme` from
-standard channel names. It cannot infer `EEGReference` or `EEGGround`.
-`PowerLineFrequency` you fix by setting `raw.info["line_freq"]` before writing
-(`convert_recording.py --line-freq`). The rest need
-`scripts/patch_sidecar.py` afterwards.
+`write_raw_bids()` auto-fills `SamplingFrequency` + `*ChannelCount` fields from
+`raw.info`, sometimes infers `EEGPlacementScheme` from standard channel names.
+Can't infer `EEGReference` or `EEGGround`. Fix `PowerLineFrequency` by setting
+`raw.info["line_freq"]` before writing (`convert_recording.py --line-freq`). Rest
+needs `scripts/patch_sidecar.py` after.
 
-**`Manufacturer` is written from the output extension**, not from the
-hardware: `.vhdr` gives "Brain Products", `.bdf` "Biosemi", `.cdt` "Curry",
-`.fif` "Elekta", `.edf` and `.set` "n/a". SKILL.md Step 5 covers what to do
-about it.
+**`Manufacturer` written from output extension**, not hardware: `.vhdr` gives
+"Brain Products", `.bdf` "Biosemi", `.cdt` "Curry", `.fif` "Elekta", `.edf`/`.set`
+"n/a". SKILL.md Step 5 covers fix.
 
 ## `*_channels.tsv`
 
-REQUIRED columns, in order: `name` (unique), `type` (restricted vocabulary,
-UPPERCASE), `units` (SI, e.g. `V`).
+REQUIRED columns, in order: `name` (unique), `type` (restricted vocab, UPPERCASE),
+`units` (SI, e.g. `V`).
 
 Allowed `type` values: `AUDIO`, `EEG`, `EOG`, `ECG`, `EMG`, `EYEGAZE`, `GSR`,
 `HEOG`, `MISC`, `PPG`, `PUPIL`, `REF`, `RESP`, `SYSCLOCK`, `TEMP`, `TRIG`,
@@ -134,84 +128,71 @@ Optional columns: `description`, `sampling_frequency`, `reference`,
 `low_cutoff`, `high_cutoff`, `notch`, `status` (good/bad),
 `status_description`.
 
-`type` comes from the MNE channel type set via `raw.set_channel_types(...)`
-before writing (`convert_recording.py --channel-types`), not from the channel
-name.
+`type` comes from MNE channel type set via `raw.set_channel_types(...)` before
+writing (`convert_recording.py --channel-types`), not from channel name.
 
 ## Allowed raw file formats
 
 RECOMMENDED: **EDF** (`.edf`), **BrainVision** (`.vhdr` + `.vmrk` + `.eeg`).
-Permitted but discouraged over those two: **EEGLAB** (`.set`, optional
-`.fdt`), **Biosemi BDF** (`.bdf`).
+Permitted but discouraged: **EEGLAB** (`.set`, optional `.fdt`), **Biosemi BDF** (`.bdf`).
 
-**Extensions must be lowercase.** The spec states the capital `.EDF` and
-`.BDF` forms MUST NOT be used. A source file named `.EDF` reads fine, but the
-name cannot be carried into the BIDS tree. `edf+` and `bdf+` files are
-permitted.
+**Extensions must be lowercase.** Spec: capital `.EDF`/`.BDF` MUST NOT be used.
+Source file named `.EDF` reads fine, but name can't carry into BIDS tree.
+`edf+`/`bdf+` files permitted.
 
-Everything else (GDF, CNT, Curry, FIF, custom) is converted to BrainVision on
-write. That is normal and not a data-quality problem, but it does mean the
-`Manufacturer` trap above applies, and the output format will not match the
-source's.
+Everything else (GDF, CNT, Curry, FIF, custom) converted to BrainVision on write.
+Normal, not data-quality problem — but `Manufacturer` trap above applies, output
+format won't match source's.
 
 ## Per-format gotchas
 
-**BrainVision** is a triplet (`.vhdr` + `.eeg` + `.vmrk`) where the `.vhdr`
-names its siblings internally. Reorganizing an archive renames files but not
-those pointers, and mne then fails with a confusing "file not found".
-`convert_recording.py` detects this and says so. Fix it by copying the triplet
-to scratch and correcting the pointers *there*. Never edit files in the source
-dataset.
+**BrainVision** triplet (`.vhdr` + `.eeg` + `.vmrk`) where `.vhdr` names siblings
+internally. Reorganizing archive renames files but not pointers — mne fails with
+confusing "file not found". `convert_recording.py` detects, warns. Fix: copy
+triplet to scratch, correct pointers *there*. Never edit source dataset files.
 
-**EDF** stores 16-bit samples against one physical range shared by all
-channels, so a single high-amplitude channel coarsens the rest. Measured
-against BrainVision on real data, EDF costs roughly 60 to 85 dB. It also pads
-the recording out to a whole number of one-second data records, appending up
-to 1 s of flat fabricated signal and changing `RecordingDuration`, and it
-truncates channel names at 16 characters. For long channel names or wide
-dynamic range, write BrainVision instead (`--output-format BrainVision`).
+**EDF** stores 16-bit samples against one physical range shared by all channels —
+single high-amplitude channel coarsens rest. Vs BrainVision on real data: EDF
+costs ~60-85 dB. Also pads recording to whole number of one-second data records,
+appending up to 1s flat fabricated signal, changing `RecordingDuration`, truncates
+channel names at 16 chars. Long channel names / wide dynamic range → write
+BrainVision instead (`--output-format BrainVision`).
 
-**BDF** is a valid BIDS format but not a valid explicit `format=` target for
-mne-bids. Any channel edit forces a preload, which forces an explicit format,
-so an edited BDF source comes out as BrainVision. That is expected.
+**BDF** valid BIDS format, not valid explicit `format=` target for mne-bids. Any
+channel edit forces preload → forces explicit format, so edited BDF source comes
+out as BrainVision. Expected.
 
-**EEGLAB** `.set` is a header. The samples live in a sibling `.fdt`.
-mne-bids' copy-through path writes only the `.set`, producing an output that
-reads back as "`..._eeg.fdt` not found" while the validator reports zero
-errors. `convert_recording.py` preloads `.set` sources and writes a single
-self-contained `.set` to avoid this.
+**EEGLAB** `.set` is header only. Samples live in sibling `.fdt`. mne-bids'
+copy-through path writes only `.set` — output reads back "`..._eeg.fdt` not found"
+while validator reports zero errors. `convert_recording.py` preloads `.set`
+sources, writes single self-contained `.set` to avoid this.
 
-Tell the two apart by size, not by assuming the fix applied. A self-contained
-`.set` is roughly as large as the source `.set` plus `.fdt` together, because
-it now holds the samples. An output `.set` still at header size, 11 MB where
-the source `.fdt` was 373 MB, is the broken case. No amount of format
-conversion, compression, or resampling explains it: `write_raw_bids` does
-neither. Open the output and check it reads.
+Tell two apart by size, not assumption. Self-contained `.set` roughly source
+`.set` + `.fdt` combined size (now holds samples). Output `.set` still header
+size — e.g. 11 MB where source `.fdt` was 373 MB — is broken case. No format
+conversion/compression/resampling explains it: `write_raw_bids` does none. Open
+output, check it reads.
 
-Also: `read_raw_eeglab` falls back to the same-stem `.fdt` when the header
-names a file that does not exist, so a stale internal pointer usually needs no
-repair.
+Also: `read_raw_eeglab` falls back to same-stem `.fdt` when header names
+nonexistent file — stale internal pointer usually needs no repair.
 
 **Curry** (`.cdt` plus `.cdt.dpa`/`.cdt.ceo`) reads natively via
-`mne.io.read_raw_curry`, which needs the `curryreader` package. A missing
-package is not the same as an unsupported format.
+`mne.io.read_raw_curry`, needs `curryreader` package. Missing package ≠
+unsupported format.
 
-**GDF and CNT** are not BIDS formats. They always get converted on write.
-`.cnt` is used by both Neuroscan (`read_raw_cnt`) and ANT Neuro eego
-(`read_raw_ant`). If channels come out garbled, the vendor guess is the first
-thing to check.
+**GDF and CNT** not BIDS formats. Always converted on write. `.cnt` used by both
+Neuroscan (`read_raw_cnt`) and ANT Neuro eego (`read_raw_ant`). Channels garbled →
+check vendor guess first.
 
 **Anonymization.** For real recording dates, pass `--anonymize-daysback N`
-consistently across every recording in the dataset. Applying it to some and
-not others is worse than not doing it at all: it implies a guarantee the
-dataset does not have. `raw.set_meas_date(None)` drops the date entirely and
-is the other common choice.
+consistently across every recording in dataset. Applying to some not others worse
+than not doing at all — implies guarantee dataset lacks. `raw.set_meas_date(None)`
+drops date entirely, other common choice.
 
 ## BIDS validator
 
-`scripts/validate_bids.py` wraps the `bids-validator-deno` PyPI package,
-self-contained and installed on demand by `uv run`. It exits nonzero only on
-real errors. Warnings are printed but do not fail the run.
+`scripts/validate_bids.py` wraps `bids-validator-deno` PyPI package, self-contained,
+installed on demand by `uv run`. Exits nonzero only on real errors. Warnings printed,
+don't fail run.
 
-It checks structure, not signal. SKILL.md Step 6 covers what that leaves
-unchecked.
+Checks structure, not signal. SKILL.md Step 6 covers what that leaves unchecked.

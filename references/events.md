@@ -1,11 +1,11 @@
 # When events don't come from embedded annotations
 
-Read this when the recording's events live somewhere other than annotations
-mne already reads: a trigger channel, a marker array, a separate csv/tsv/
-txt/mat file. Also when you need to document what the trigger codes mean.
+Read this when recording's events live somewhere other than annotations
+mne already reads: trigger channel, marker array, separate csv/tsv/
+txt/mat file. Also when need document trigger codes' meaning.
 
-If `mne.io.read_raw(...).annotations` already holds the events, you don't
-need this file: pass `--annotations-only` and mne-bids writes both
+If `mne.io.read_raw(...).annotations` already holds events, skip this file:
+pass `--annotations-only` and mne-bids writes both
 `events.tsv` and `events.json` for you.
 
 ## Contents
@@ -16,18 +16,18 @@ need this file: pass `--annotations-only` and mne-bids writes both
 
 ## The two write paths
 
-The target is always one of exactly two things:
+Target always one of exactly two things:
 
 | you have | flag | who writes events.json |
 |---|---|---|
-| annotations on the Raw | `--annotations-only` | mne-bids, automatically |
-| a table you built | `--events-csv <path>` | **you**, via `--events-descriptions` |
+| annotations on Raw | `--annotations-only` | mne-bids, automatically |
+| table you built | `--events-csv <path>` | **you**, via `--events-descriptions` |
 
 Never both for one recording. Two writers race over one `events.tsv`.
-Neither is correct only when the recording genuinely has no events.
+Neither correct only when recording genuinely has no events.
 
-The `--events-csv` path has no automatic `events.json`, so
-`--events-descriptions` is not optional there: without it every non-obvious
+`--events-csv` path has no automatic `events.json`, so
+`--events-descriptions` not optional there: without it every non-obvious
 column ships undocumented.
 
 ```bash
@@ -38,8 +38,8 @@ uv run scripts/convert_recording.py --input <file> --bids-root <root> \
         "Levels": {"standard": "Frequent tone", "target": "Rare tone"}}}'
 ```
 
-The file is read with `pandas.read_csv` defaults, so write it **comma**-
-separated even though BIDS itself is TSV everywhere. Columns:
+File read with `pandas.read_csv` defaults, so write it **comma**-
+separated even though BIDS itself TSV everywhere. Columns:
 `onset,duration,trial_type[,value]`, onset and duration in **seconds**.
 
 ## Getting events out of the source
@@ -59,22 +59,22 @@ raw.set_annotations(mne.Annotations(
 
 **External event file** (csv/tsv/txt/lab/tse_agg/mat): parse it, compute
 onset and duration in seconds, write `onset,duration,trial_type[,value]`,
-pass it to `--events-csv`. Do not hand-write `events.tsv` directly. That is
+pass to `--events-csv`. Don't hand-write `events.tsv` directly. That's
 how you get two writers disagreeing.
 
-Check the units the source used. Onsets recorded in milliseconds or in
-samples both look plausible as seconds and neither the script nor the
-validator will notice; a 1000x error in onset silently misaligns every epoch.
+Check units source used. Onsets recorded in milliseconds or samples
+both look plausible as seconds, neither script nor validator notice;
+1000x error in onset silently misaligns every epoch.
 
 ## Documenting the codes
 
-Look up what the numbers mean in the dataset's own docs before building
-`code_to_label`. Emitting `event_251`/`event_252` when the README says
-"251 = deviant onset, 252 = standard onset" discards information that was
+Look up what numbers mean in dataset's own docs before building
+`code_to_label`. Emitting `event_251`/`event_252` when README says
+"251 = deviant onset, 252 = standard onset" discards info that was
 right there.
 
-If the codes really are undocumented, keep the raw number in a `value`
-column and say so. Do not name them by guess.
+If codes really undocumented, keep raw number in `value`
+column and say so. Don't name them by guess.
 
 ```bash
 --events-descriptions '{"value": {"Description":
@@ -82,23 +82,23 @@ column and say so. Do not name them by guess.
      what these codes mean."}}'
 ```
 
-That is an honest sidecar. An invented `Levels` mapping is not, and no
-validator will ever flag it.
+That's honest sidecar. Invented `Levels` mapping isn't, and no
+validator ever flags it.
 
 ## events.tsv columns
 
 REQUIRED: `onset` (seconds from acquisition start, negative allowed),
 `duration` (seconds, >= 0; `0` = instantaneous event).
 
-Common/recommended: `trial_type` (categorical label, use this rather than
+Common/recommended: `trial_type` (categorical label, use rather than
 `description`), `response_time`, `stim_file`, `value`, `sample`, `HED`,
 `channel`.
 
-Rules: sort by ascending `onset`; missing values are the literal string
+Rules: sort by ascending `onset`; missing values are literal string
 `"n/a"`, never blank. Document non-obvious columns, especially categorical
-`trial_type`/`value` codes, in the accompanying `_events.json` via
+`trial_type`/`value` codes, in accompanying `_events.json` via
 `Levels`.
 
-`task-<label>_events.json` may live at the dataset root and be inherited by
-every run of that task via the Inheritance Principle. `TaskName` is REQUIRED
-there whenever a `task-` entity is used.
+`task-<label>_events.json` may live at dataset root and be inherited by
+every run of that task via Inheritance Principle. `TaskName` REQUIRED
+there whenever `task-` entity used.
